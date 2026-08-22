@@ -1,8 +1,9 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Globe, Loader2 } from 'lucide-react'
 import { api } from '../services/api'
 import { useTripStore } from '../store/useTripStore'
+import { FormInputField } from '../components/login/FormInputField'
 
 function Login() {
     const [mode, setMode] = useState('login')
@@ -19,6 +20,7 @@ function Login() {
     const [pending, setPending] = useState(false)
     const login = useTripStore(s => s.login)
     const nav = useNavigate()
+
     const validate = () => {
         const next = {}
         if (!email.includes('@')) next.email = 'Enter a valid email address'
@@ -33,6 +35,7 @@ function Login() {
         setErrors(next)
         return !Object.keys(next).length
     }
+
     const submit = async e => {
         e.preventDefault()
         if (!validate()) return
@@ -42,34 +45,7 @@ function Login() {
         setPending(false)
         nav('/trips')
     }
-    const field = (
-        label,
-        value,
-        setValue,
-        key,
-        type = 'text',
-        placeholder = label,
-    ) => (
-        <div className="space-y-1.5">
-            <label className="text-sm font-medium" htmlFor={key}>
-                {label}
-            </label>
-            <input
-                id={key}
-                type={type}
-                value={value}
-                onChange={e => {
-                    setValue(e.target.value)
-                    setErrors(x => ({ ...x, [key]: undefined }))
-                }}
-                placeholder={placeholder}
-                className={`w-full rounded-lg border bg-transparent px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-sky-400/40 ${errors[key] ? 'border-rose-500' : 'border-zinc-300 dark:border-zinc-700'}`}
-            />
-            {errors[key] && (
-                <p className="text-xs text-rose-500">{errors[key]}</p>
-            )}
-        </div>
-    )
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-zinc-50 px-4 py-10 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
             <form
@@ -110,28 +86,34 @@ function Login() {
                 <div className="mt-6 space-y-4">
                     {mode === 'signup' && (
                         <div className="grid grid-cols-2 gap-4">
-                            {field(
-                                'First Name',
-                                firstName,
-                                setFirstName,
-                                'firstName',
-                            )}
-                            {field(
-                                'Last Name',
-                                lastName,
-                                setLastName,
-                                'lastName',
-                            )}
+                            <FormInputField
+                                label="First Name"
+                                value={firstName}
+                                setValue={setFirstName}
+                                fieldKey="firstName"
+                                errors={errors}
+                                setErrors={setErrors}
+                            />
+                            <FormInputField
+                                label="Last Name"
+                                value={lastName}
+                                setValue={setLastName}
+                                fieldKey="lastName"
+                                errors={errors}
+                                setErrors={setErrors}
+                            />
                         </div>
                     )}
-                    {field(
-                        'Email Address',
-                        email,
-                        setEmail,
-                        'email',
-                        'email',
-                        'you@example.com',
-                    )}
+                    <FormInputField
+                        label="Email Address"
+                        value={email}
+                        setValue={setEmail}
+                        fieldKey="email"
+                        type="email"
+                        placeholder="you@example.com"
+                        errors={errors}
+                        setErrors={setErrors}
+                    />
                     {mode === 'login' && (
                         <div className="-mb-1 text-right">
                             <button
@@ -142,14 +124,16 @@ function Login() {
                         </div>
                     )}
                     <div className="relative">
-                        {field(
-                            'Password',
-                            password,
-                            setPassword,
-                            'password',
-                            showPassword ? 'text' : 'password',
-                            'At least 6 characters',
-                        )}
+                        <FormInputField
+                            label="Password"
+                            value={password}
+                            setValue={setPassword}
+                            fieldKey="password"
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="At least 6 characters"
+                            errors={errors}
+                            setErrors={setErrors}
+                        />
                         <button
                             type="button"
                             aria-label={
@@ -166,30 +150,34 @@ function Login() {
                     </div>
                     {mode === 'signup' && (
                         <>
-                            {field(
-                                'Phone Number',
-                                phone,
-                                setPhone,
-                                'phone',
-                                'tel',
-                                '+91 00000 00000',
-                            )}
-                            {field(
-                                'City',
-                                city,
-                                setCity,
-                                'city',
-                                'text',
-                                'Mumbai',
-                            )}
-                            {field(
-                                'Country',
-                                country,
-                                setCountry,
-                                'country',
-                                'text',
-                                'India',
-                            )}
+                            <FormInputField
+                                label="Phone Number"
+                                value={phone}
+                                setValue={setPhone}
+                                fieldKey="phone"
+                                type="tel"
+                                placeholder="+91 00000 00000"
+                                errors={errors}
+                                setErrors={setErrors}
+                            />
+                            <FormInputField
+                                label="City"
+                                value={city}
+                                setValue={setCity}
+                                fieldKey="city"
+                                placeholder="Mumbai"
+                                errors={errors}
+                                setErrors={setErrors}
+                            />
+                            <FormInputField
+                                label="Country"
+                                value={country}
+                                setValue={setCountry}
+                                fieldKey="country"
+                                placeholder="India"
+                                errors={errors}
+                                setErrors={setErrors}
+                            />
                             <div className="space-y-1.5">
                                 <label
                                     className="text-sm font-medium"
