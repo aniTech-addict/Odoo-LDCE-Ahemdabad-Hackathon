@@ -5,13 +5,11 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "dev": "ts-node-dev --respawn --transpile-only --experimental-specifier-resolution=node src/server.ts",
-        "build": "tsc",
-        "start": "node --experimental-specifier-resolution=node dist/server.js",
-        "db:generate": "drizzle-kit generate:pg",
-        "db:migrate": "tsx ./src/drizzle/migrate.ts",
-        "db:migrate:reset": "tsx ./src/drizzle/migrate.ts --reset",
-        "db:seed": "tsx ./src/drizzle/seed.ts",
+        "start": "node server.js",
+        "dev": "nodemon server.js",
+        "migrate": "node src/scripts/migrate.js",
+        "migrate:reset": "node src/scripts/migrate.js --reset",
+        "node:seed": "node src/scripts/seed.js",
         "db:view": "concurrently \"pnpm drizzle-kit studio\" \"pnpm dlx drizzle-lab visualizer\" \"sleep 1 && pnpm dlx drizzle-view\""
     },
     "keywords": [
