@@ -458,6 +458,62 @@ export async function getPlaceCoordinates(placeId) {
     return null
 }
 
+/**
+ * Calculates a cost matrix of travel distances/times between a list of coordinate locations.
+ * @param {Array<{lat: number, lon: number}>} coordinatesArray - List of locations
+ * @param {'walk'|'drive'|'bicycle'} [mode='walk'] - Travel mode
+ * @returns {Promise<object>} Distance/time matrix object
+ */
+export async function calculateRouteMatrix(coordinatesArray, mode = 'walk') {
+    if (IS_MOCK_MODE) {
+        const matrix = []
+        for (let i = 0; i < coordinatesArray.length; i++) {
+            const row = []
+            for (let j = 0; j < coordinatesArray.length; j++) {
+                if (i === j) {
+                    row.push({ distance: 0, time: 0 })
+                } else {
+                    const c1 = coordinatesArray[i]
+                    const c2 = coordinatesArray[j]
+                    const latDiff = c1.lat - c2.lat
+                    const lonDiff = c1.lon - c2.lon
+                    // Approx distance in meters
+                    const distance = Math.round(Math.sqrt(latDiff * latDiff + lonDiff * lonDiff) * 111000)
+                    const speed = mode === 'walk' ? 1.4 : mode === 'bicycle' ? 5.0 : 13.8 // meters/second
+                    const time = Math.round(distance / speed)
+                    row.push({ distance, time })
+                }
+            }
+            matrix.push(row)
+        }
+        return { matrix }
+    }
+
+    if (!GEOAPIFY_API_KEY) {
+        throw new Error('GEOAPIFY_API_KEY is not defined.')
+    }
+    if (coordinatesArray.length < 2) {
+        return { matrix: [[{ distance: 0, time: 0 }]] }
+    }
+
+    const sources = coordinatesArray.map(c => ({ location: [c.lon, c.lat] }))
+    const targets = coordinatesArray.map(c => ({ location: [c.lon, c.lat] }))
+
+    const url = `https://api.geoapify.com/v1/routematrix?apiKey=${GEOAPIFY_API_KEY}`
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode, sources, targets })
+    })
+
+    if (!response.ok) {
+        throw new Error(`Geoapify Route Matrix API failed: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return data
+}
+
 // --- HELPER UTILITIES ---
 
 function unsplashAccessKeyAvailable() {
