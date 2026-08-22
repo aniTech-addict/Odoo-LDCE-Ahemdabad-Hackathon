@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { loadInitialData } from './services/dataIntegration'
 import { useTripStore } from './store/useTripStore'
@@ -24,7 +24,16 @@ function App() {
             .then(({ cities, activities, trips }) =>
                 setData(cities, activities, trips),
             )
-            .catch(setDataError)
+            .catch(err => {
+                if (
+                    err.message.includes('Not Authorized') ||
+                    err.message.includes('token')
+                ) {
+                    window.location.href = '/login'
+                } else {
+                    setDataError(err)
+                }
+            })
             .finally(() => setLoading(false))
     }, [setData])
 
@@ -48,7 +57,7 @@ function App() {
                     <Route path="/budget" element={<Budget />} />
                     <Route path="/admin" element={<Admin />} />
                     <Route path="/calendar" element={<Calendar />} />
-                    <Route path="/share/:id" element={<Share />} />
+                    <Route path="/share" element={<Share />} />
                     <Route path="/activities" element={<Activities />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="*" element={<Landing />} />
