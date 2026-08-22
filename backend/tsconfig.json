@@ -17,6 +17,7 @@
         /* Module Resolution Options */
         "moduleResolution": "NodeNext", // Specify module resolution strategy. 'NodeNext' is the modern standard for Node.js.
         "baseUrl": ".", // Base directory to resolve non-absolute module names.
+        "ignoreDeprecations": "6.0", // Silence TypeScript 6 deprecation warning for baseUrl.
         "paths": {
             // A series of entries which re-map imports to lookup locations relative to the 'baseUrl'.
             "#src/*": ["./src/*"]
