@@ -31,12 +31,15 @@ export const searchCity = async (req, res) => {
  * Endpoint to list activities in a specific city using coordinate range.
  */
 export const getActivities = async (req, res) => {
-    const { cityId, lat, lon } = req.query
+    const { cityId, lat, lon, category } = req.query
     if (!cityId || !lat || !lon) {
         return res.sendStructuredResponse(400, null, 'Parameters cityId, lat, and lon are required')
     }
     try {
-        const activities = await getCityActivitiesAndCache(cityId, parseFloat(lat), parseFloat(lon))
+        let activities = await getCityActivitiesAndCache(cityId, parseFloat(lat), parseFloat(lon))
+        if (category) {
+            activities = activities.filter(act => act.category.toLowerCase() === category.toLowerCase())
+        }
         return res.sendStructuredResponse(200, activities, 'Activities fetched successfully')
     } catch (error) {
         console.error('Get activities error:', error)
@@ -108,11 +111,49 @@ export const createTrip = async (req, res) => {
  */
 export const listTrips = async (req, res) => {
     const userId = req.userId
+    const { status, cityId } = req.query
     try {
-        const result = await pool.query(
-            'SELECT * FROM trips WHERE user_id = $1 ORDER BY start_date ASC',
-            [userId]
-        )
+        // Auto-update statuses based on current date
+        const updateStatusQuery = `
+            UPDATE trips 
+            SET status = CASE 
+                WHEN CURRENT_DATE < start_date THEN 'Upcoming'::text
+                WHEN CURRENT_DATE >= start_date AND CURRENT_DATE <= end_date THEN 'Ongoing'::text
+                ELSE 'Completed'::text
+            END
+            WHERE user_id = $1 AND status != CASE 
+                WHEN CURRENT_DATE < start_date THEN 'Upcoming'::text
+                WHEN CURRENT_DATE >= start_date AND CURRENT_DATE <= end_date THEN 'Ongoing'::text
+                ELSE 'Completed'::text
+            END
+        `
+        await pool.query(updateStatusQuery, [userId])
+
+        let selectQuery = 'SELECT * FROM trips WHERE user_id = $1 ORDER BY start_date ASC'
+        const params = [userId]
+
+        if (status && cityId) {
+            selectQuery = `
+                SELECT t.* FROM trips t 
+                JOIN trip_cities tc ON t.id = tc.trip_id 
+                WHERE t.user_id = $1 AND t.status = $2 AND tc.city_id = $3 
+                ORDER BY t.start_date ASC
+            `
+            params.push(status, cityId)
+        } else if (status) {
+            selectQuery = 'SELECT * FROM trips WHERE user_id = $1 AND status = $2 ORDER BY start_date ASC'
+            params.push(status)
+        } else if (cityId) {
+            selectQuery = `
+                SELECT t.* FROM trips t 
+                JOIN trip_cities tc ON t.id = tc.trip_id 
+                WHERE t.user_id = $1 AND tc.city_id = $2 
+                ORDER BY t.start_date ASC
+            `
+            params.push(cityId)
+        }
+
+        const result = await pool.query(selectQuery, params)
         return res.sendStructuredResponse(200, result.rows, 'Trips retrieved successfully')
     } catch (error) {
         console.error('List trips error:', error)
@@ -128,6 +169,22 @@ export const getTrip = async (req, res) => {
     const { id } = req.params
 
     try {
+        // Auto-update specific trip status before fetching details
+        const updateStatusQuery = `
+            UPDATE trips 
+            SET status = CASE 
+                WHEN CURRENT_DATE < start_date THEN 'Upcoming'::text
+                WHEN CURRENT_DATE >= start_date AND CURRENT_DATE <= end_date THEN 'Ongoing'::text
+                ELSE 'Completed'::text
+            END
+            WHERE id = $1 AND status != CASE 
+                WHEN CURRENT_DATE < start_date THEN 'Upcoming'::text
+                WHEN CURRENT_DATE >= start_date AND CURRENT_DATE <= end_date THEN 'Ongoing'::text
+                ELSE 'Completed'::text
+            END
+        `
+        await pool.query(updateStatusQuery, [id])
+
         const tripRes = await pool.query(
             'SELECT * FROM trips WHERE id = $1 AND user_id = $2',
             [id, userId]
