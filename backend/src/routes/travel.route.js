@@ -12,12 +12,16 @@ import {
     updateTrip,
     updateItineraryItem,
     deleteItineraryItem,
-    optimizeItinerary
+    optimizeItinerary,
+    listCities,
+    listActivities
 } from '#src/controllers/travel.controller.js'
 
 const travelRouter = Router()
 
 // Public search endpoints
+travelRouter.get('/cities', listCities)
+travelRouter.get('/activities', listActivities)
 travelRouter.get('/cities/search', searchCity)
 travelRouter.get('/cities/activities', getActivities)
 
