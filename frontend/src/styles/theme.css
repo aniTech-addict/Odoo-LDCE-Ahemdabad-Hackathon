@@ -1,0 +1,43 @@
+/* Theme tokens and document defaults */
+:root {
+    --color-ink: #18181b;
+    --color-paper: #fafafa;
+    --color-border: #e4e4e7;
+    --color-border-dark: #27272a;
+    --color-muted: #52525b;
+    --color-muted-dark: #a1a1aa;
+    --color-accent: #2563eb;
+    --color-accent-hover: #1d4ed8;
+    --color-input-border: #d4d4d8;
+    --color-input-border-dark: #3f3f46;
+
+    font-family: Inter, sans-serif;
+    color: var(--color-ink);
+    background: var(--color-paper);
+    color-scheme: light;
+}
+
+:root.dark {
+    color: #f4f4f5;
+    background: #09090b;
+    color-scheme: dark;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+    width: 100%;
+    min-height: 100%;
+}
+
+body {
+    min-width: 320px;
+    margin: 0;
+    background: inherit;
+    color: inherit;
+    transition: background-color 0.2s, color 0.2s;
+}
