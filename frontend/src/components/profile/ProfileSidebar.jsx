@@ -7,6 +7,7 @@ export function ProfileSidebar({
     setEmail,
     editing,
     setEditing,
+    onSave,
 }) {
     return (
         <aside className="rounded-2xl border border-zinc-200 bg-white p-7 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900 lg:col-span-4">
@@ -50,7 +51,7 @@ export function ProfileSidebar({
                 Member since June 2024
             </p>
             <button
-                onClick={() => setEditing(!editing)}
+                onClick={() => (editing ? onSave() : setEditing(true))}
                 className="mt-6 min-h-11 w-full rounded-lg bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-400"
             >
                 {editing ? 'Save Profile' : 'Edit Profile'}

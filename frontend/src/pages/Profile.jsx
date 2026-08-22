@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { Shell } from '../components/Shell'
 import { useTripStore } from '../store/useTripStore'
+import { api } from '../services/api'
 import { ProfileSidebar } from '../components/profile/ProfileSidebar'
 import { DeleteAccountModal } from '../components/profile/DeleteAccountModal'
 
 function Profile() {
-    const { user, trips, cities } = useTripStore()
+    const { user, trips, cities, setUser, logout } = useTripStore()
 
     if (!user) {
         return (
@@ -42,6 +43,28 @@ function Profile() {
     const [emailUpdates, setEmailUpdates] = useState(true)
     const [reminders, setReminders] = useState(true)
     const [confirm, setConfirm] = useState(false)
+    const [actionError, setActionError] = useState('')
+
+    const saveProfile = async () => {
+        try {
+            await api.updateUser({ name, email })
+            setUser({ ...user, name, email })
+            setEditing(false)
+            setActionError('')
+        } catch (error) {
+            setActionError(error.message)
+        }
+    }
+
+    const deleteAccount = async () => {
+        try {
+            await api.deleteUser()
+            logout()
+            nav('/')
+        } catch (error) {
+            setActionError(error.message)
+        }
+    }
 
     return (
         <Shell>
@@ -77,6 +100,7 @@ function Profile() {
                             setEmail={setEmail}
                             editing={editing}
                             setEditing={setEditing}
+                            onSave={saveProfile}
                         />
                         <section className="lg:col-span-8">
                             <div className="flex gap-6 border-b border-zinc-200 dark:border-zinc-800">
@@ -232,7 +256,7 @@ function Profile() {
                 <DeleteAccountModal
                     isOpen={confirm}
                     onClose={() => setConfirm(false)}
-                    onConfirm={() => setConfirm(false)}
+                    onConfirm={deleteAccount}
                 />
             </div>
         </Shell>

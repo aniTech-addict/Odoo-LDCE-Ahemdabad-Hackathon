@@ -81,6 +81,7 @@ export const useTripStore = create(
                     selectedCities: [],
                 }),
             setActive: id => set({ activeTripId: id }),
+            setUser: user => set({ user }),
             createTrip: trip =>
                 set(s => ({
                     trips: [...s.trips, normalizeTrip(trip)],
