@@ -1,8 +1,10 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Compass, Plus } from 'lucide-react'
+import { ArrowRight, Plus } from 'lucide-react'
 import { Shell } from '../components/Shell'
 import { useTripStore } from '../store/useTripStore'
+import { InspirationSidebar } from '../components/create/InspirationSidebar'
+import { CitySelectionGrid } from '../components/create/CitySelectionGrid'
 
 function Create() {
     const [step, setStep] = useState(1)
@@ -12,14 +14,14 @@ function Create() {
     const [endDate, setEndDate] = useState('')
     const [description, setDescription] = useState('')
     const [cover, setCover] = useState('')
-    const [pending, setPending] = useState(false)
     const { cities, selectedCities, addCity, createTrip, activities } =
         useTripStore()
     const nav = useNavigate()
+
     return (
         <Shell>
             <div className="max-w-5xl mx-auto px-5 py-14">
-                <p className="eyebrow">Create a trip Â· 0{step} / 03</p>
+                <p className="eyebrow">Create a trip · 0{step} / 03</p>
                 <h1 className="serif text-5xl mt-3 mb-10">
                     A new chapter begins.
                 </h1>
@@ -139,7 +141,7 @@ function Create() {
                                     {cover || 'Add a cover photo'}
                                 </span>
                                 <span className="mt-1 text-xs text-navy/50">
-                                    Optional Â· choose an image file
+                                    Optional · choose an image file
                                 </span>
                                 <input
                                     type="file"
@@ -153,67 +155,15 @@ function Create() {
                                 />
                             </label>
                         </div>
-                        <aside className="paper-card p-6">
-                            <p className="eyebrow flex items-center gap-2">
-                                <Compass size={15} /> Inspiration
-                            </p>
-                            <h2 className="serif text-2xl mt-2">
-                                Suggestions for your route
-                            </h2>
-                            <div className="mt-5 space-y-3">
-                                {(activities || []).slice(0, 3).map(a => (
-                                    <div
-                                        key={a.id}
-                                        className="flex gap-3 border-b border-gold/20 pb-3">
-                                        <img
-                                            src={a.image}
-                                            alt=""
-                                            className="h-14 w-16 rounded-lg object-cover"
-                                        />
-                                        <div>
-                                            <p className="text-sm font-semibold">
-                                                {a.name}
-                                            </p>
-                                            <p className="text-xs text-navy/60">
-                                                {a.category} Â· â‚¹
-                                                {a.price.toLocaleString(
-                                                    'en-IN',
-                                                )}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </aside>
+                        <InspirationSidebar activities={activities} />
                     </div>
                 )}
                 {step === 2 && (
-                    <div>
-                        <p className="text-navy/60 mb-5">
-                            Choose two or more places to build your route.
-                        </p>
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {cities.map(c => (
-                                <button
-                                    onClick={() => addCity(c.id)}
-                                    className={`text-left paper-card overflow-hidden ${selectedCities.includes(c.id) ? 'ring-2 ring-gold' : ''}`}>
-                                    <img
-                                        src={c.image}
-                                        alt={c.name}
-                                        className="h-32 w-full object-cover"
-                                    />
-                                    <div className="p-4">
-                                        <p className="serif text-xl">
-                                            {c.name}
-                                        </p>
-                                        <p className="text-xs text-navy/60">
-                                            {c.country}
-                                        </p>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                    <CitySelectionGrid
+                        cities={cities}
+                        selectedCities={selectedCities}
+                        addCity={addCity}
+                    />
                 )}
                 {step === 3 && (
                     <div className="paper-card p-7 max-w-xl">
@@ -222,7 +172,7 @@ function Create() {
                             {name || 'Untitled journey'}
                         </h2>
                         <p className="mt-4">
-                            {selectedCities.length} cities selected. Weâ€™ll
+                            {selectedCities.length} cities selected. We’ll
                             shape the days around your pace.
                         </p>
                     </div>

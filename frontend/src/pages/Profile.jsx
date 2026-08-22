@@ -1,8 +1,10 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Plus } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { Shell } from '../components/Shell'
 import { useTripStore } from '../store/useTripStore'
+import { ProfileSidebar } from '../components/profile/ProfileSidebar'
+import { DeleteAccountModal } from '../components/profile/DeleteAccountModal'
 
 function Profile() {
     const { user, trips, cities } = useTripStore()
@@ -14,6 +16,7 @@ function Profile() {
     const [emailUpdates, setEmailUpdates] = useState(true)
     const [reminders, setReminders] = useState(true)
     const [confirm, setConfirm] = useState(false)
+
     return (
         <Shell>
             <div className="min-h-screen bg-zinc-50 px-5 py-8 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
@@ -41,51 +44,14 @@ function Profile() {
                         </span>
                     </div>
                     <div className="mt-8 grid gap-6 lg:grid-cols-12">
-                        <aside className="rounded-2xl border border-zinc-200 bg-white p-7 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900 lg:col-span-4">
-                            <div className="relative mx-auto w-fit">
-                                <div className="grid h-28 w-28 place-items-center rounded-full bg-zinc-900 text-3xl font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
-                                    {name.slice(0, 2).toUpperCase()}
-                                </div>
-                                <button
-                                    aria-label="Edit profile photo"
-                                    className="absolute bottom-0 right-0 grid h-9 w-9 place-items-center rounded-full bg-sky-500 text-white">
-                                    <Plus size={16} />
-                                </button>
-                            </div>
-                            {editing ? (
-                                <div className="mt-6 space-y-3 text-left">
-                                    <input
-                                        aria-label="Name"
-                                        value={name}
-                                        onChange={e => setName(e.target.value)}
-                                        className="input"
-                                    />
-                                    <input
-                                        aria-label="Email"
-                                        value={email}
-                                        onChange={e => setEmail(e.target.value)}
-                                        className="input"
-                                    />
-                                </div>
-                            ) : (
-                                <>
-                                    <h2 className="mt-5 text-2xl font-semibold">
-                                        {name}
-                                    </h2>
-                                    <p className="mt-2 text-sm text-zinc-500">
-                                        {email}
-                                    </p>
-                                </>
-                            )}
-                            <p className="mt-4 text-xs text-zinc-400">
-                                Member since June 2024
-                            </p>
-                            <button
-                                onClick={() => setEditing(!editing)}
-                                className="mt-6 min-h-11 w-full rounded-lg bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-400">
-                                {editing ? 'Save Profile' : 'Edit Profile'}
-                            </button>
-                        </aside>
+                        <ProfileSidebar
+                            name={name}
+                            setName={setName}
+                            email={email}
+                            setEmail={setEmail}
+                            editing={editing}
+                            setEditing={setEditing}
+                        />
                         <section className="lg:col-span-8">
                             <div className="flex gap-6 border-b border-zinc-200 dark:border-zinc-800">
                                 <button
@@ -237,30 +203,11 @@ function Profile() {
                         </section>
                     </div>
                 </div>
-                {confirm && (
-                    <div className="fixed inset-0 z-50 grid place-items-center bg-zinc-950/50 p-5">
-                        <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900">
-                            <h2 className="text-xl font-semibold">
-                                Delete account?
-                            </h2>
-                            <p className="mt-2 text-sm text-zinc-500">
-                                This action cannot be undone.
-                            </p>
-                            <div className="mt-6 flex gap-3">
-                                <button
-                                    onClick={() => setConfirm(false)}
-                                    className="btn flex-1 border border-zinc-200 dark:border-zinc-700">
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={() => setConfirm(false)}
-                                    className="btn flex-1 bg-rose-600 text-white">
-                                    Confirm delete
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                <DeleteAccountModal
+                    isOpen={confirm}
+                    onClose={() => setConfirm(false)}
+                    onConfirm={() => setConfirm(false)}
+                />
             </div>
         </Shell>
     )
