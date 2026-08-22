@@ -94,7 +94,13 @@ export const useTripStore = create(
                 })
                 set(s => ({
                     trips: s.trips.map(item =>
-                        item.id === id ? normalizeTrip(savedTrip) : item,
+                        item.id === id
+                            ? normalizeTrip({
+                                  ...savedTrip,
+                                  cities: savedTrip.cities || trip.cities,
+                                  itinerary: trip.itinerary,
+                              })
+                            : item,
                     ),
                 }))
             },
