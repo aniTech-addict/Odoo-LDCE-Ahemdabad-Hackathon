@@ -5,8 +5,9 @@ import {
     getCityActivitiesAndCache,
     calculateItineraryRoute,
     getPlaceCoordinates,
-    calculateRouteMatrix
+    calculateRouteMatrix,
 } from '#src/services/locationService.js'
+import { solveTSP } from '#src/helpers/solveTSP.js'
 
 /**
  * Endpoint to search for a city by query name. Geocodes and caches it on the fly.
@@ -14,7 +15,11 @@ import {
 export const searchCity = async (req, res) => {
     const { q } = req.query
     if (!q) {
-        return res.sendStructuredResponse(400, null, 'Query parameter "q" is required')
+        return res.sendStructuredResponse(
+            400,
+            null,
+            'Query parameter "q" is required',
+        )
     }
     try {
         const city = await geocodeCityAndCache(q)
@@ -34,17 +39,35 @@ export const searchCity = async (req, res) => {
 export const getActivities = async (req, res) => {
     const { cityId, lat, lon, category } = req.query
     if (!cityId || !lat || !lon) {
-        return res.sendStructuredResponse(400, null, 'Parameters cityId, lat, and lon are required')
+        return res.sendStructuredResponse(
+            400,
+            null,
+            'Parameters cityId, lat, and lon are required',
+        )
     }
     try {
-        let activities = await getCityActivitiesAndCache(cityId, parseFloat(lat), parseFloat(lon))
+        let activities = await getCityActivitiesAndCache(
+            cityId,
+            parseFloat(lat),
+            parseFloat(lon),
+        )
         if (category) {
-            activities = activities.filter(act => act.category.toLowerCase() === category.toLowerCase())
+            activities = activities.filter(
+                act => act.category.toLowerCase() === category.toLowerCase(),
+            )
         }
-        return res.sendStructuredResponse(200, activities, 'Activities fetched successfully')
+        return res.sendStructuredResponse(
+            200,
+            activities,
+            'Activities fetched successfully',
+        )
     } catch (error) {
         console.error('Get activities error:', error)
-        return res.sendStructuredResponse(500, null, 'Error fetching activities')
+        return res.sendStructuredResponse(
+            500,
+            null,
+            'Error fetching activities',
+        )
     }
 }
 
@@ -55,8 +78,18 @@ export const createTrip = async (req, res) => {
     const userId = req.userId
     const { name, description, start_date, end_date, city_ids } = req.body
 
-    if (!name || !start_date || !end_date || !Array.isArray(city_ids) || city_ids.length === 0) {
-        return res.sendStructuredResponse(400, null, 'name, start_date, end_date, and non-empty city_ids array are required')
+    if (
+        !name ||
+        !start_date ||
+        !end_date ||
+        !Array.isArray(city_ids) ||
+        city_ids.length === 0
+    ) {
+        return res.sendStructuredResponse(
+            400,
+            null,
+            'name, start_date, end_date, and non-empty city_ids array are required',
+        )
     }
 
     const client = await pool.connect()
@@ -67,7 +100,10 @@ export const createTrip = async (req, res) => {
 
         // Use the first city's photo as the cover photo
         let coverImageUrl = null
-        const cityRes = await client.query('SELECT image_url FROM cities WHERE id = $1', [city_ids[0]])
+        const cityRes = await client.query(
+            'SELECT image_url FROM cities WHERE id = $1',
+            [city_ids[0]],
+        )
         if (cityRes.rows.length > 0) {
             coverImageUrl = cityRes.rows[0].image_url
         }
@@ -85,19 +121,23 @@ export const createTrip = async (req, res) => {
             start_date,
             end_date,
             'Upcoming',
-            coverImageUrl
+            coverImageUrl,
         ])
 
         // Add cities to trip
         for (let i = 0; i < city_ids.length; i++) {
             await client.query(
                 'INSERT INTO trip_cities (trip_id, city_id, city_order) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-                [tripId, city_ids[i], i]
+                [tripId, city_ids[i], i],
             )
         }
 
         await client.query('COMMIT')
-        return res.sendStructuredResponse(201, tripResult.rows[0], 'Trip created successfully')
+        return res.sendStructuredResponse(
+            201,
+            tripResult.rows[0],
+            'Trip created successfully',
+        )
     } catch (error) {
         await client.query('ROLLBACK')
         console.error('Create trip error:', error)
@@ -130,7 +170,8 @@ export const listTrips = async (req, res) => {
         `
         await pool.query(updateStatusQuery, [userId])
 
-        let selectQuery = 'SELECT * FROM trips WHERE user_id = $1 ORDER BY start_date ASC'
+        let selectQuery =
+            'SELECT * FROM trips WHERE user_id = $1 ORDER BY start_date ASC'
         const params = [userId]
 
         if (status && cityId) {
@@ -142,7 +183,8 @@ export const listTrips = async (req, res) => {
             `
             params.push(status, cityId)
         } else if (status) {
-            selectQuery = 'SELECT * FROM trips WHERE user_id = $1 AND status = $2 ORDER BY start_date ASC'
+            selectQuery =
+                'SELECT * FROM trips WHERE user_id = $1 AND status = $2 ORDER BY start_date ASC'
             params.push(status)
         } else if (cityId) {
             selectQuery = `
@@ -155,7 +197,11 @@ export const listTrips = async (req, res) => {
         }
 
         const result = await pool.query(selectQuery, params)
-        return res.sendStructuredResponse(200, result.rows, 'Trips retrieved successfully')
+        return res.sendStructuredResponse(
+            200,
+            result.rows,
+            'Trips retrieved successfully',
+        )
     } catch (error) {
         console.error('List trips error:', error)
         return res.sendStructuredResponse(500, null, 'Error listing trips')
@@ -188,7 +234,7 @@ export const getTrip = async (req, res) => {
 
         const tripRes = await pool.query(
             'SELECT * FROM trips WHERE id = $1 AND user_id = $2',
-            [id, userId]
+            [id, userId],
         )
         if (tripRes.rows.length === 0) {
             return res.sendStructuredResponse(404, null, 'Trip not found')
@@ -203,7 +249,7 @@ export const getTrip = async (req, res) => {
              JOIN cities c ON tc.city_id = c.id 
              WHERE tc.trip_id = $1 
              ORDER BY tc.city_order ASC`,
-            [id]
+            [id],
         )
         trip.cities = citiesRes.rows
 
@@ -214,58 +260,80 @@ export const getTrip = async (req, res) => {
              LEFT JOIN activities a ON ii.activity_id = a.id
              WHERE ii.trip_id = $1
              ORDER BY ii.day_date ASC, ii.time_of_day ASC`,
-            [id]
+            [id],
         )
         trip.itinerary = itineraryRes.rows
 
-        return res.sendStructuredResponse(200, trip, 'Trip details retrieved successfully')
+        return res.sendStructuredResponse(
+            200,
+            trip,
+            'Trip details retrieved successfully',
+        )
     } catch (error) {
         console.error('Get trip error:', error)
-        return res.sendStructuredResponse(500, null, 'Error getting trip details')
+        return res.sendStructuredResponse(
+            500,
+            null,
+            'Error getting trip details',
+        )
     }
 }
 
-/**
- * Deletes a trip.
- */
 export const deleteTrip = async (req, res) => {
     const userId = req.userId
     const { id } = req.params
     try {
         const result = await pool.query(
             'DELETE FROM trips WHERE id = $1 AND user_id = $2',
-            [id, userId]
+            [id, userId],
         )
         if (result.rowCount === 0) {
             return res.sendStructuredResponse(404, null, 'Trip not found')
         }
-        return res.sendStructuredResponse(200, null, 'Trip deleted successfully')
+        return res.sendStructuredResponse(
+            200,
+            null,
+            'Trip deleted successfully',
+        )
     } catch (error) {
         console.error('Delete trip error:', error)
         return res.sendStructuredResponse(500, null, 'Error deleting trip')
     }
 }
 
-/**
- * Adds an activity item to a trip's itinerary.
- */
 export const addItineraryItem = async (req, res) => {
     const userId = req.userId
     const { tripId } = req.params
-    const { activity_id, day_date, time_of_day, title, category, price, notes } = req.body
+    const {
+        activity_id,
+        day_date,
+        time_of_day,
+        title,
+        category,
+        price,
+        notes,
+    } = req.body
 
     if (!day_date || !title) {
-        return res.sendStructuredResponse(400, null, 'day_date and title are required')
+        return res.sendStructuredResponse(
+            400,
+            null,
+            'day_date and title are required',
+        )
     }
 
     try {
         // Validate trip ownership
         const tripCheck = await pool.query(
             'SELECT id FROM trips WHERE id = $1 AND user_id = $2',
-            [tripId, userId]
+            [tripId, userId],
         )
         if (tripCheck.rows.length === 0) {
-            return res.sendStructuredResponse(404, null, 'Trip not found or unauthorized')
+            return res.sendStructuredResponse(
+                404,
+                null,
+                'Trip not found or unauthorized',
+            )
         }
 
         const itemId = crypto.randomUUID()
@@ -273,7 +341,10 @@ export const addItineraryItem = async (req, res) => {
         // Fetch activity image if activity_id is supplied
         let imageUrl = null
         if (activity_id) {
-            const actRes = await pool.query('SELECT image_url FROM activities WHERE id = $1', [activity_id])
+            const actRes = await pool.query(
+                'SELECT image_url FROM activities WHERE id = $1',
+                [activity_id],
+            )
             if (actRes.rows.length > 0) {
                 imageUrl = actRes.rows[0].image_url
             }
@@ -294,13 +365,21 @@ export const addItineraryItem = async (req, res) => {
             category || 'General',
             price || 0,
             imageUrl,
-            notes || ''
+            notes || '',
         ])
 
-        return res.sendStructuredResponse(201, result.rows[0], 'Itinerary item added successfully')
+        return res.sendStructuredResponse(
+            201,
+            result.rows[0],
+            'Itinerary item added successfully',
+        )
     } catch (error) {
         console.error('Add itinerary item error:', error)
-        return res.sendStructuredResponse(500, null, 'Error adding itinerary item')
+        return res.sendStructuredResponse(
+            500,
+            null,
+            'Error adding itinerary item',
+        )
     }
 }
 
@@ -313,32 +392,42 @@ export const getDailyRoute = async (req, res) => {
     const { day_date, mode } = req.query
 
     if (!day_date) {
-        return res.sendStructuredResponse(400, null, 'Query parameter "day_date" is required')
+        return res.sendStructuredResponse(
+            400,
+            null,
+            'Query parameter "day_date" is required',
+        )
     }
 
     try {
         // Validate trip ownership
         const tripCheck = await pool.query(
             'SELECT id FROM trips WHERE id = $1 AND user_id = $2',
-            [tripId, userId]
+            [tripId, userId],
         )
         if (tripCheck.rows.length === 0) {
-            return res.sendStructuredResponse(404, null, 'Trip not found or unauthorized')
+            return res.sendStructuredResponse(
+                404,
+                null,
+                'Trip not found or unauthorized',
+            )
         }
 
-        // Fetch itinerary items for that day
         const itemsRes = await pool.query(
             `SELECT ii.*, a.id as activity_id
              FROM itinerary_items ii
              LEFT JOIN activities a ON ii.activity_id = a.id
              WHERE ii.trip_id = $1 AND ii.day_date = $2
              ORDER BY ii.time_of_day ASC`,
-            [tripId, day_date]
+            [tripId, day_date],
         )
 
         const items = itemsRes.rows
         if (items.length < 2) {
-            return res.sendStructuredResponse(200, { route: null, message: 'Need at least 2 itinerary items to calculate a route' })
+            return res.sendStructuredResponse(200, {
+                route: null,
+                message: 'Need at least 2 itinerary items to calculate a route',
+            })
         }
 
         // Resolve coordinates for all items with activity_id
@@ -353,20 +442,29 @@ export const getDailyRoute = async (req, res) => {
         }
 
         if (coords.length < 2) {
-            return res.sendStructuredResponse(200, { route: null, message: 'Could not resolve spatial coordinates for at least 2 activities on this day' })
+            return res.sendStructuredResponse(200, {
+                route: null,
+                message:
+                    'Could not resolve spatial coordinates for at least 2 activities on this day',
+            })
         }
 
         const routeData = await calculateItineraryRoute(coords, mode || 'walk')
-        return res.sendStructuredResponse(200, routeData, 'Daily route calculated successfully')
+        return res.sendStructuredResponse(
+            200,
+            routeData,
+            'Daily route calculated successfully',
+        )
     } catch (error) {
         console.error('Get daily route error:', error)
-        return res.sendStructuredResponse(500, null, 'Error calculating daily route')
+        return res.sendStructuredResponse(
+            500,
+            null,
+            'Error calculating daily route',
+        )
     }
 }
 
-/**
- * Updates an existing itinerary item.
- */
 export const updateItineraryItem = async (req, res) => {
     const userId = req.userId
     const { tripId, itemId } = req.params
@@ -376,19 +474,27 @@ export const updateItineraryItem = async (req, res) => {
         // Validate trip ownership
         const tripCheck = await pool.query(
             'SELECT id FROM trips WHERE id = $1 AND user_id = $2',
-            [tripId, userId]
+            [tripId, userId],
         )
         if (tripCheck.rows.length === 0) {
-            return res.sendStructuredResponse(404, null, 'Trip not found or unauthorized')
+            return res.sendStructuredResponse(
+                404,
+                null,
+                'Trip not found or unauthorized',
+            )
         }
 
         // Validate itinerary item existence and its association with the trip
         const itemCheck = await pool.query(
             'SELECT id FROM itinerary_items WHERE id = $1 AND trip_id = $2',
-            [itemId, tripId]
+            [itemId, tripId],
         )
         if (itemCheck.rows.length === 0) {
-            return res.sendStructuredResponse(404, null, 'Itinerary item not found')
+            return res.sendStructuredResponse(
+                404,
+                null,
+                'Itinerary item not found',
+            )
         }
 
         // Construct update query dynamically based on provided fields
@@ -434,16 +540,21 @@ export const updateItineraryItem = async (req, res) => {
         `
 
         const result = await pool.query(updateQuery, params)
-        return res.sendStructuredResponse(200, result.rows[0], 'Itinerary item updated successfully')
+        return res.sendStructuredResponse(
+            200,
+            result.rows[0],
+            'Itinerary item updated successfully',
+        )
     } catch (error) {
         console.error('Update itinerary item error:', error)
-        return res.sendStructuredResponse(500, null, 'Error updating itinerary item')
+        return res.sendStructuredResponse(
+            500,
+            null,
+            'Error updating itinerary item',
+        )
     }
 }
 
-/**
- * Deletes an itinerary item.
- */
 export const deleteItineraryItem = async (req, res) => {
     const userId = req.userId
     const { tripId, itemId } = req.params
@@ -452,23 +563,39 @@ export const deleteItineraryItem = async (req, res) => {
         // Validate trip ownership
         const tripCheck = await pool.query(
             'SELECT id FROM trips WHERE id = $1 AND user_id = $2',
-            [tripId, userId]
+            [tripId, userId],
         )
         if (tripCheck.rows.length === 0) {
-            return res.sendStructuredResponse(404, null, 'Trip not found or unauthorized')
+            return res.sendStructuredResponse(
+                404,
+                null,
+                'Trip not found or unauthorized',
+            )
         }
 
         const result = await pool.query(
             'DELETE FROM itinerary_items WHERE id = $1 AND trip_id = $2',
-            [itemId, tripId]
+            [itemId, tripId],
         )
         if (result.rowCount === 0) {
-            return res.sendStructuredResponse(404, null, 'Itinerary item not found')
+            return res.sendStructuredResponse(
+                404,
+                null,
+                'Itinerary item not found',
+            )
         }
-        return res.sendStructuredResponse(200, null, 'Itinerary item deleted successfully')
+        return res.sendStructuredResponse(
+            200,
+            null,
+            'Itinerary item deleted successfully',
+        )
     } catch (error) {
         console.error('Delete itinerary item error:', error)
-        return res.sendStructuredResponse(500, null, 'Error deleting itinerary item')
+        return res.sendStructuredResponse(
+            500,
+            null,
+            'Error deleting itinerary item',
+        )
     }
 }
 
@@ -478,7 +605,8 @@ export const deleteItineraryItem = async (req, res) => {
 export const updateTrip = async (req, res) => {
     const userId = req.userId
     const { id } = req.params
-    const { name, description, start_date, end_date, status, city_ids } = req.body
+    const { name, description, start_date, end_date, status, city_ids } =
+        req.body
 
     const client = await pool.connect()
     try {
@@ -487,11 +615,15 @@ export const updateTrip = async (req, res) => {
         // Validate trip ownership
         const tripCheck = await client.query(
             'SELECT id FROM trips WHERE id = $1 AND user_id = $2',
-            [id, userId]
+            [id, userId],
         )
         if (tripCheck.rows.length === 0) {
             await client.query('ROLLBACK')
-            return res.sendStructuredResponse(404, null, 'Trip not found or unauthorized')
+            return res.sendStructuredResponse(
+                404,
+                null,
+                'Trip not found or unauthorized',
+            )
         }
 
         // Dynamically update trips table
@@ -523,7 +655,10 @@ export const updateTrip = async (req, res) => {
         // If city_ids is provided and not empty, update cover image url from the first city
         let coverImageUrl = null
         if (Array.isArray(city_ids) && city_ids.length > 0) {
-            const cityRes = await client.query('SELECT image_url FROM cities WHERE id = $1', [city_ids[0]])
+            const cityRes = await client.query(
+                'SELECT image_url FROM cities WHERE id = $1',
+                [city_ids[0]],
+            )
             if (cityRes.rows.length > 0) {
                 coverImageUrl = cityRes.rows[0].image_url
                 fields.push(`cover_image_url = $${paramIndex++}`)
@@ -549,18 +684,24 @@ export const updateTrip = async (req, res) => {
         // Update cities if provided
         if (Array.isArray(city_ids)) {
             // Delete old trip cities
-            await client.query('DELETE FROM trip_cities WHERE trip_id = $1', [id])
+            await client.query('DELETE FROM trip_cities WHERE trip_id = $1', [
+                id,
+            ])
             // Insert new trip cities
             for (let i = 0; i < city_ids.length; i++) {
                 await client.query(
                     'INSERT INTO trip_cities (trip_id, city_id, city_order) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-                    [id, city_ids[i], i]
+                    [id, city_ids[i], i],
                 )
             }
         }
 
         await client.query('COMMIT')
-        return res.sendStructuredResponse(200, updatedTrip, 'Trip updated successfully')
+        return res.sendStructuredResponse(
+            200,
+            updatedTrip,
+            'Trip updated successfully',
+        )
     } catch (error) {
         await client.query('ROLLBACK')
         console.error('Update trip error:', error)
@@ -568,98 +709,6 @@ export const updateTrip = async (req, res) => {
     } finally {
         client.release()
     }
-}
-
-/**
- * Helper to solve the Traveling Salesperson Problem (TSP)
- */
-function solveTSP(matrix, keepFirstFixed = true) {
-    const N = matrix.length
-    if (N <= 1) return [0]
-    
-    if (N > 10) {
-        // Nearest Neighbor (Greedy) approach for large N
-        const path = [0]
-        const visited = new Array(N).fill(false)
-        visited[0] = true
-        let curr = 0
-        while (path.length < N) {
-            let nextBest = -1
-            let minTime = Infinity
-            for (let next = 0; next < N; next++) {
-                if (!visited[next]) {
-                    const time = matrix[curr][next]?.time || 0
-                    if (time < minTime) {
-                        minTime = time
-                        nextBest = next
-                    }
-                }
-            }
-            if (nextBest === -1) break
-            visited[nextBest] = true
-            path.push(nextBest)
-            curr = nextBest
-        }
-        return path
-    }
-
-    // Exact Backtracking approach for N <= 10
-    let bestPath = []
-    let minCost = Infinity
-
-    if (keepFirstFixed) {
-        const visited = new Array(N).fill(false)
-        visited[0] = true
-        
-        function backtrack(curr, path, cost) {
-            if (cost >= minCost) return
-            if (path.length === N) {
-                if (cost < minCost) {
-                    minCost = cost
-                    bestPath = [...path]
-                }
-                return
-            }
-            for (let next = 0; next < N; next++) {
-                if (!visited[next]) {
-                    visited[next] = true
-                    path.push(next)
-                    backtrack(next, path, cost + (matrix[curr][next]?.time || 0))
-                    path.pop()
-                    visited[next] = false
-                }
-            }
-        }
-        backtrack(0, [0], 0)
-    } else {
-        const visited = new Array(N).fill(false)
-        function backtrack(curr, path, cost) {
-            if (cost >= minCost) return
-            if (path.length === N) {
-                if (cost < minCost) {
-                    minCost = cost
-                    bestPath = [...path]
-                }
-                return
-            }
-            for (let next = 0; next < N; next++) {
-                if (!visited[next]) {
-                    visited[next] = true
-                    path.push(next)
-                    backtrack(next, path, cost + (matrix[curr][next]?.time || 0))
-                    path.pop()
-                    visited[next] = false
-                }
-            }
-        }
-        for (let start = 0; start < N; start++) {
-            visited[start] = true
-            backtrack(start, [start], 0)
-            visited[start] = false
-        }
-    }
-    
-    return bestPath
 }
 
 /**
@@ -671,17 +720,25 @@ export const optimizeItinerary = async (req, res) => {
     const { day_date, mode, keepFirstFixed } = req.body
 
     if (!day_date) {
-        return res.sendStructuredResponse(400, null, 'day_date is required in body')
+        return res.sendStructuredResponse(
+            400,
+            null,
+            'day_date is required in body',
+        )
     }
 
     try {
         // Validate trip ownership
         const tripCheck = await pool.query(
             'SELECT id FROM trips WHERE id = $1 AND user_id = $2',
-            [tripId, userId]
+            [tripId, userId],
         )
         if (tripCheck.rows.length === 0) {
-            return res.sendStructuredResponse(404, null, 'Trip not found or unauthorized')
+            return res.sendStructuredResponse(
+                404,
+                null,
+                'Trip not found or unauthorized',
+            )
         }
 
         // Fetch itinerary items for that day in chronological order
@@ -691,11 +748,15 @@ export const optimizeItinerary = async (req, res) => {
              LEFT JOIN activities a ON ii.activity_id = a.id
              WHERE ii.trip_id = $1 AND ii.day_date = $2
              ORDER BY ii.time_of_day ASC`,
-            [tripId, day_date]
+            [tripId, day_date],
         )
         const items = itemsRes.rows
         if (items.length < 2) {
-            return res.sendStructuredResponse(200, items, 'No optimization needed for less than 2 items')
+            return res.sendStructuredResponse(
+                200,
+                items,
+                'No optimization needed for less than 2 items',
+            )
         }
 
         // Filter items that have valid coordinates
@@ -712,13 +773,24 @@ export const optimizeItinerary = async (req, res) => {
         }
 
         if (coords.length < 2) {
-            return res.sendStructuredResponse(400, null, 'At least 2 activities with valid coordinates are required to optimize')
+            return res.sendStructuredResponse(
+                400,
+                null,
+                'At least 2 activities with valid coordinates are required to optimize',
+            )
         }
 
         // Call Route Matrix API
         const matrixResult = await calculateRouteMatrix(coords, mode || 'walk')
-        if (!matrixResult.matrix || matrixResult.matrix.length !== coords.length) {
-            return res.sendStructuredResponse(500, null, 'Failed to compute route matrix')
+        if (
+            !matrixResult.matrix ||
+            matrixResult.matrix.length !== coords.length
+        ) {
+            return res.sendStructuredResponse(
+                500,
+                null,
+                'Failed to compute route matrix',
+            )
         }
 
         // Solve TSP
@@ -736,10 +808,10 @@ export const optimizeItinerary = async (req, res) => {
                 const itemIndex = bestPath[i]
                 const itemToUpdate = optimizableItems[itemIndex]
                 const newTime = originalTimes[i]
-                
+
                 await client.query(
                     'UPDATE itinerary_items SET time_of_day = $1, updated_at = NOW() WHERE id = $2',
-                    [newTime, itemToUpdate.id]
+                    [newTime, itemToUpdate.id],
                 )
             }
             await client.query('COMMIT')
@@ -757,12 +829,20 @@ export const optimizeItinerary = async (req, res) => {
              LEFT JOIN activities a ON ii.activity_id = a.id
              WHERE ii.trip_id = $1 AND ii.day_date = $2
              ORDER BY ii.time_of_day ASC`,
-            [tripId, day_date]
+            [tripId, day_date],
         )
 
-        return res.sendStructuredResponse(200, updatedItemsRes.rows, 'Itinerary optimized successfully')
+        return res.sendStructuredResponse(
+            200,
+            updatedItemsRes.rows,
+            'Itinerary optimized successfully',
+        )
     } catch (error) {
         console.error('Optimize itinerary error:', error)
-        return res.sendStructuredResponse(500, null, 'Error optimizing itinerary')
+        return res.sendStructuredResponse(
+            500,
+            null,
+            'Error optimizing itinerary',
+        )
     }
 }
