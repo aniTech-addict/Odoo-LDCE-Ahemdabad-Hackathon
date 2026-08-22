@@ -5,6 +5,7 @@ import { applyResponsePrototype } from './src/helpers/responsePrototype.js'
 
 import authRouter from '#src/routes/auth.route.js'
 import userRouter from '#src/routes/user.route.js'
+import travelRouter from '#src/routes/travel.route.js'
 
 const app = express()
 const port = process.env.PORT || 8080
@@ -17,6 +18,7 @@ app.use(express.json())
 
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/users', userRouter)
+app.use('/api/v1/travel', travelRouter)
 
 app.get('/', (req, res) => {
     res.sendStructuredResponse(200, null, 'SERVER IS RUNNING')
