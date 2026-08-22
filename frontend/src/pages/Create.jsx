@@ -71,7 +71,7 @@ function Create() {
                                         />
                                     ))}
                                 </datalist>
-                                <p className="mt-2 text-xs text-navy/50">
+                                <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-300">
                                     Type a destination or open the field to
                                     choose a suggested city.
                                 </p>
@@ -140,7 +140,7 @@ function Create() {
                                 <span className="mt-2 text-sm font-medium">
                                     {cover || 'Add a cover photo'}
                                 </span>
-                                <span className="mt-1 text-xs text-navy/50">
+                                <span className="mt-1 text-xs text-zinc-600 dark:text-zinc-300">
                                     Optional · choose an image file
                                 </span>
                                 <input
@@ -172,8 +172,8 @@ function Create() {
                             {name || 'Untitled journey'}
                         </h2>
                         <p className="mt-4">
-                            {selectedCities.length} cities selected. We’ll
-                            shape the days around your pace.
+                            {selectedCities.length} cities selected. We’ll shape
+                            the days around your pace.
                         </p>
                     </div>
                 )}
