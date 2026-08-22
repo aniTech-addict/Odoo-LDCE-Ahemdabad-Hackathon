@@ -1,0 +1,46 @@
+{
+    "name": "backend",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+        "build": "tsc",
+        "start": "node dist/server.js",
+        "migrate": "node src/scripts/migrate.js",
+        "migrate:reset": "node src/scripts/migrate.js --reset",
+        "node:seed": "node src/scripts/seed.js",
+        "db:view": "concurrently \"pnpm drizzle-kit studio\" \"pnpm dlx drizzle-lab visualizer\" \"sleep 1 && pnpm dlx drizzle-view\""
+    },
+    "keywords": [
+        "DEKI DUO"
+    ],
+    "imports": {
+        "#root/*": "./*",
+        "#src/*": "./src/*"
+    },
+    "author": "DEKI DUO",
+    "license": "ISC",
+    "dependencies": {
+        "bcrypt": "^6.0.0",
+        "cors": "^2.8.6",
+        "dotenv": "^17.4.2",
+        "express": "^5.2.1",
+        "jsonwebtoken": "^9.0.3",
+        "pg": "^8.22.0"
+    },
+    "devDependencies": {
+        "@types/bcrypt": "^6.0.0",
+        "@types/cors": "^2.8.19",
+        "@types/express": "^5.0.6",
+        "@types/jsonwebtoken": "^9.0.10",
+        "@types/node": "^26.2.0",
+        "@types/pg": "^8.23.1",
+        "concurrently": "^10.0.4",
+        "drizzle-kit": "^0.18.1",
+        "nodemon": "^3.1.14",
+        "ts-node-dev": "^2.0.0",
+        "typescript": "^7.0.2"
+    }
+}

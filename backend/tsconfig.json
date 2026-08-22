@@ -1,0 +1,32 @@
+{
+    "compilerOptions": {
+        /* Basic Options */
+        "target": "ES2020", // Specify ECMAScript target version. 'ES2020' supports modern features like optional chaining and nullish coalescing.
+        "module": "NodeNext", // Specify module code generation. 'NodeNext' is the modern standard for Node.js.
+        "lib": ["ES2020"], // Specify library files to be included in the compilation.
+        "allowJs": true, // Allow javascript files to be compiled.
+        "checkJs": true, // Report errors in .js files.
+        "outDir": "./dist", // Redirect output structure to the directory.
+        "rootDir": "./src", // Specify the root directory of input files.
+        "strict": true, // Enable all strict type-checking options.
+        "noImplicitAny": true, // Raise error on expressions and declarations with an implied 'any' type.
+        "esModuleInterop": true, // Enables emit interoperability between CommonJS and ES Modules.
+        "skipLibCheck": true, // Skip type checking of all declaration files (*.d.ts).
+        "forceConsistentCasingInFileNames": true, // Disallow inconsistently-cased references to the same file.
+
+        /* Module Resolution Options */
+        "moduleResolution": "NodeNext", // Specify module resolution strategy. 'NodeNext' is the modern standard for Node.js.
+        "baseUrl": ".", // Base directory to resolve non-absolute module names.
+        "paths": {
+            // A series of entries which re-map imports to lookup locations relative to the 'baseUrl'.
+            "#src/*": ["./src/*"]
+        },
+
+        /* Advanced Options */
+        "resolveJsonModule": true, // Include modules imported with .json extension.
+        "experimentalDecorators": true, // Enables experimental support for ES7 decorators.
+        "emitDecoratorMetadata": true // Enables experimental support for emitting type metadata for decorators.
+    },
+    "include": ["src/**/*"], // Specifies an array of filenames or patterns to include in the program.
+    "exclude": ["node_modules"] // Specifies an array of filenames or patterns that should be skipped when resolving 'include'.
+}
