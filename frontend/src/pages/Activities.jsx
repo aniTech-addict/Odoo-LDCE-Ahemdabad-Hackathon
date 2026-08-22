@@ -4,6 +4,7 @@ import { Shell } from '../components/Shell'
 import { useTripStore } from '../store/useTripStore'
 import { CityCard } from '../components/activities/CityCard'
 import { DiscoveryActivityCard } from '../components/activities/DiscoveryActivityCard'
+import { imageOrDefault } from '../utils/images'
 
 function Activities() {
     const { activities, addActivity, trips, activeTripId, cities, addCity } =
@@ -19,7 +20,7 @@ function Activities() {
     const cityName = c => c?.name || c?.[0] || 'City'
     const cityCountry = c => c?.country || c?.[1] || ''
     const cityRegion = c => c?.region || c?.[2] || 'Other'
-    const cityImage = c => c?.image || c?.[3] || ''
+    const cityImage = c => imageOrDefault(c?.image || c?.[3])
 
     const regions = ['All regions', ...new Set(cities.map(cityRegion))]
     const types = ['All types', ...new Set(activities.map(a => a.category))]

@@ -1,3 +1,5 @@
+import { imageOrDefault } from '../../utils/images'
+
 export function CityCard({
     city,
     addCity,
@@ -9,7 +11,7 @@ export function CityCard({
     return (
         <article className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <img
-                src={cityImage(city)}
+                src={imageOrDefault(cityImage(city))}
                 alt={cityName(city)}
                 className="h-40 w-full object-cover"
             />

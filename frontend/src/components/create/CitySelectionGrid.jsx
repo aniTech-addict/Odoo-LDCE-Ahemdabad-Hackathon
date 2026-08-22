@@ -1,3 +1,5 @@
+import { imageOrDefault } from '../../utils/images'
+
 export function CitySelectionGrid({ cities, selectedCities, addCity }) {
     return (
         <div>
@@ -11,7 +13,7 @@ export function CitySelectionGrid({ cities, selectedCities, addCity }) {
                         onClick={() => addCity(c.id)}
                         className={`text-left paper-card overflow-hidden ${selectedCities.includes(c.id) ? 'ring-2 ring-gold' : ''}`}>
                         <img
-                            src={c.image}
+                            src={imageOrDefault(c.image)}
                             alt={c.name}
                             className="h-32 w-full object-cover"
                         />

@@ -4,6 +4,7 @@ import { Heart, Share2, Plus, Sparkles, User, Copy, Check } from 'lucide-react'
 import { Shell } from '../components/Shell'
 import { useTripStore } from '../store/useTripStore'
 import { api } from '../services/api'
+import { imageOrDefault } from '../utils/images'
 
 function Share() {
     const nav = useNavigate()
@@ -50,7 +51,9 @@ function Share() {
         // Optimistic update
         setPosts(prev =>
             prev.map(post =>
-                post.id === id ? { ...post, likes: (post.likes || 0) + 1 } : post,
+                post.id === id
+                    ? { ...post, likes: (post.likes || 0) + 1 }
+                    : post,
             ),
         )
         try {
@@ -86,9 +89,12 @@ function Share() {
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700 dark:bg-sky-950/40 dark:text-sky-300">
                             <Sparkles size={13} /> GlobeTrotter Feed
                         </span>
-                        <h1 className="serif text-4xl mt-3 font-semibold">Shared Journeys Wall</h1>
+                        <h1 className="serif text-4xl mt-3 font-semibold">
+                            Shared Journeys Wall
+                        </h1>
                         <p className="mt-2 text-sm text-zinc-500 max-w-md mx-auto">
-                            Explore itineraries published by travel enthusiasts. Love their plans? Copy them to start editing!
+                            Explore itineraries published by travel enthusiasts.
+                            Love their plans? Copy them to start editing!
                         </p>
                     </div>
 
@@ -96,14 +102,19 @@ function Share() {
                     {user && (
                         <div className="mb-8 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                             <h2 className="text-base font-semibold mb-3 flex items-center gap-2">
-                                <Share2 size={16} className="text-sky-500" /> Share one of your trips
+                                <Share2 size={16} className="text-sky-500" />{' '}
+                                Share one of your trips
                             </h2>
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <select
                                     value={selectedTripId}
-                                    onChange={e => setSelectedTripId(e.target.value)}
+                                    onChange={e =>
+                                        setSelectedTripId(e.target.value)
+                                    }
                                     className="h-11 flex-1 rounded-lg border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
-                                    <option value="">-- Choose a trip to publish --</option>
+                                    <option value="">
+                                        -- Choose a trip to publish --
+                                    </option>
                                     {trips
                                         .filter(t => !t.is_shared)
                                         .map(t => (
@@ -125,11 +136,16 @@ function Share() {
                     {/* Feed Posts */}
                     {loading ? (
                         <div className="text-center py-10">
-                            <p className="text-sm text-zinc-500 animate-pulse">Loading social wall posts...</p>
+                            <p className="text-sm text-zinc-500 animate-pulse">
+                                Loading social wall posts...
+                            </p>
                         </div>
                     ) : posts.length === 0 ? (
                         <div className="text-center py-12 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
-                            <p className="text-zinc-500 text-sm">No shared trips yet. Be the first to share your journey!</p>
+                            <p className="text-zinc-500 text-sm">
+                                No shared trips yet. Be the first to share your
+                                journey!
+                            </p>
                         </div>
                     ) : (
                         <div className="space-y-6">
@@ -143,67 +159,86 @@ function Share() {
                                             <User size={16} />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-semibold">{post.created_by || 'GlobeTrotter'}</p>
+                                            <p className="text-sm font-semibold">
+                                                {post.created_by ||
+                                                    'GlobeTrotter'}
+                                            </p>
                                             <p className="text-[11px] text-zinc-500">
-                                                {new Date(post.created_at).toLocaleDateString()}
+                                                {new Date(
+                                                    post.created_at,
+                                                ).toLocaleDateString()}
                                             </p>
                                         </div>
                                     </div>
 
                                     {/* Cover Image */}
-                                    {post.cover_image_url && (
-                                        <div className="h-64 w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                                            <img
-                                                src={post.cover_image_url}
-                                                alt={post.name}
-                                                className="h-full w-full object-cover"
-                                            />
-                                        </div>
-                                    )}
+                                    <div className="h-64 w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                                        <img
+                                            src={imageOrDefault(
+                                                post.cover_image_url,
+                                            )}
+                                            alt={post.name}
+                                            className="h-full w-full object-cover"
+                                        />
+                                    </div>
 
                                     {/* Post Content */}
                                     <div className="p-5">
-                                        <h3 className="serif text-2xl font-semibold mb-2">{post.name}</h3>
+                                        <h3 className="serif text-2xl font-semibold mb-2">
+                                            {post.name}
+                                        </h3>
                                         <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4 leading-relaxed">
-                                            {post.description || 'Exploring some beautiful places along the way!'}
+                                            {post.description ||
+                                                'Exploring some beautiful places along the way!'}
                                         </p>
 
                                         {/* Cities Visited */}
-                                        {post.city_names && post.city_names.length > 0 && (
-                                            <div className="mb-4 flex flex-wrap gap-1.5">
-                                                {post.city_names.map((city, idx) => (
-                                                    <span
-                                                        key={idx}
-                                                        className="inline-flex items-center rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-                                                        {city}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
+                                        {post.city_names &&
+                                            post.city_names.length > 0 && (
+                                                <div className="mb-4 flex flex-wrap gap-1.5">
+                                                    {post.city_names.map(
+                                                        (city, idx) => (
+                                                            <span
+                                                                key={idx}
+                                                                className="inline-flex items-center rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                                                                {city}
+                                                            </span>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            )}
 
                                         {/* Action Bar */}
                                         <div className="flex items-center justify-between border-t border-zinc-100 pt-4 dark:border-zinc-800">
                                             <button
-                                                onClick={() => handleLike(post.id)}
+                                                onClick={() =>
+                                                    handleLike(post.id)
+                                                }
                                                 className="flex items-center gap-1.5 text-sm text-zinc-600 hover:text-rose-500 transition dark:text-zinc-300">
                                                 <Heart
                                                     size={18}
                                                     className="text-rose-500 fill-rose-500"
                                                     strokeWidth={2}
                                                 />
-                                                <span className="font-medium">{post.likes || 0}</span>
+                                                <span className="font-medium">
+                                                    {post.likes || 0}
+                                                </span>
                                             </button>
 
                                             <button
-                                                onClick={() => handleCopyTrip(post)}
+                                                onClick={() =>
+                                                    handleCopyTrip(post)
+                                                }
                                                 className="flex items-center gap-1.5 text-sm bg-sky-50 hover:bg-sky-100 text-sky-700 font-semibold px-3 py-1.5 rounded-lg transition dark:bg-sky-950/40 dark:text-sky-300">
                                                 {copiedTripId === post.id ? (
                                                     <>
-                                                        <Check size={15} /> Copied!
+                                                        <Check size={15} />{' '}
+                                                        Copied!
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <Copy size={15} /> Copy Trip
+                                                        <Copy size={15} /> Copy
+                                                        Trip
                                                     </>
                                                 )}
                                             </button>

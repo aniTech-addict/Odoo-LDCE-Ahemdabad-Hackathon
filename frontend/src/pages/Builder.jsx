@@ -17,6 +17,7 @@ function Builder() {
         budget,
         addActivity,
         moveActivity,
+        saveTrip,
     } = useTripStore()
 
     if (!user) {
@@ -42,6 +43,7 @@ function Builder() {
 
     const t = trips.find(x => x.id === activeTripId) || trips[0]
     const [showAdd, setShowAdd] = useState(false)
+    const [saving, setSaving] = useState(false)
 
     const handleAddSection = ({ place, date, amount }) => {
         addActivity(date, {
@@ -84,8 +86,18 @@ function Builder() {
                                 <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
                                 Resyncing...
                             </span>
-                            <button className="btn btn-ink">
-                                Save Changes
+                            <button
+                                className="btn btn-ink"
+                                disabled={saving}
+                                onClick={async () => {
+                                    setSaving(true)
+                                    try {
+                                        await saveTrip(t.id)
+                                    } finally {
+                                        setSaving(false)
+                                    }
+                                }}>
+                                {saving ? 'Saving...' : 'Save Changes'}
                             </button>
                             <Link
                                 className="btn btn-gold flex items-center gap-2"

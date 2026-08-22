@@ -1,8 +1,10 @@
+import { imageOrDefault } from '../../utils/images'
+
 export function ShareHero({ cover, name, startDate, endDate, createdBy }) {
     return (
         <section className="relative overflow-hidden rounded-3xl bg-zinc-900">
             <img
-                src={cover}
+                src={imageOrDefault(cover)}
                 alt={name}
                 className="h-[42vh] min-h-[320px] w-full object-cover opacity-75"
             />
@@ -16,8 +18,7 @@ export function ShareHero({ cover, name, startDate, endDate, createdBy }) {
                 </h1>
                 <p className="mt-3 text-zinc-200">
                     {startDate} — {endDate}
-                    {createdBy?.name &&
-                        ` · created by ${createdBy.name}`}
+                    {createdBy?.name && ` · created by ${createdBy.name}`}
                 </p>
             </div>
         </section>

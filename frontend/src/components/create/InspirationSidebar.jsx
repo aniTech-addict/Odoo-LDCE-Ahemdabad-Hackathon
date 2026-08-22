@@ -1,4 +1,5 @@
 import { Compass } from 'lucide-react'
+import { imageOrDefault } from '../../utils/images'
 
 export function InspirationSidebar({ activities }) {
     return (
@@ -13,7 +14,7 @@ export function InspirationSidebar({ activities }) {
                         key={a.id}
                         className="flex gap-3 border-b border-gold/20 pb-3">
                         <img
-                            src={a.image}
+                            src={imageOrDefault(a.image)}
                             alt=""
                             className="h-14 w-16 rounded-lg object-cover"
                         />

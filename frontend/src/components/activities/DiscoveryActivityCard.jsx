@@ -1,8 +1,10 @@
+import { imageOrDefault } from '../../utils/images'
+
 export function DiscoveryActivityCard({ activity, addActivity, trip }) {
     return (
         <article className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <img
-                src={activity.image}
+                src={imageOrDefault(activity.image)}
                 alt={activity.name}
                 className="h-44 w-full object-cover"
             />

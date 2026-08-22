@@ -1,6 +1,7 @@
 import { GripVertical, Trash2 } from 'lucide-react'
 import { useDraggable, useDroppable } from '@dnd-kit/core'
 import { useTripStore } from '../store/useTripStore'
+import { imageOrDefault } from '../utils/images'
 
 export function ActivityCard({ item, day }) {
     const { attributes, listeners, setNodeRef, transform } = useDraggable({
@@ -26,13 +27,11 @@ export function ActivityCard({ item, day }) {
                     className="mt-1 shrink-0 text-zinc-400">
                     <GripVertical size={18} strokeWidth={1.5} />
                 </button>
-                {item.image && (
-                    <img
-                        src={item.image}
-                        alt={item.title}
-                        className="h-20 w-24 shrink-0 rounded-xl object-cover"
-                    />
-                )}
+                <img
+                    src={imageOrDefault(item.image)}
+                    alt={item.title}
+                    className="h-20 w-24 shrink-0 rounded-xl object-cover"
+                />
                 <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
                         <div>
