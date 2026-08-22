@@ -20,7 +20,17 @@ export const useTripStore = create(
                     activeTripId: trips[0]?.id || null,
                 }),
             login: async data => {
-                set({ user: data.user, token: data.token })
+                const user = data.user || {}
+                const normalizedUser = {
+                    ...user,
+                    name:
+                        user.name ||
+                        [user.first_name, user.last_name]
+                            .filter(Boolean)
+                            .join(' '),
+                    additionalInfo: user.additionalInfo ?? user.additional_info,
+                }
+                set({ user: normalizedUser, token: data.token })
                 try {
                     const trips = await api.getTrips()
                     set({ trips, activeTripId: trips[0]?.id || null })

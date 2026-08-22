@@ -13,6 +13,8 @@ function Activities() {
     const [query, setQuery] = useState('')
     const [region, setRegion] = useState('All regions')
     const [type, setType] = useState('All types')
+    const [cost, setCost] = useState('Any cost')
+    const [duration, setDuration] = useState('Any duration')
 
     const cityName = c => c?.name || c?.[0] || 'City'
     const cityCountry = c => c?.country || c?.[1] || ''
@@ -30,8 +32,22 @@ function Activities() {
 
     const activityResults = activities.filter(
         a =>
-            a.name.toLowerCase().includes(query.toLowerCase()) &&
-            (type === 'All types' || a.category === type),
+            [a.name, a.category, a.description]
+                .filter(Boolean)
+                .join(' ')
+                .toLowerCase()
+                .includes(query.toLowerCase()) &&
+            (type === 'All types' || a.category === type) &&
+            (cost === 'Any cost' ||
+                (cost === 'Under ₹2,000' && Number(a.price) < 2000) ||
+                (cost === '₹2,000+' && Number(a.price) >= 2000)) &&
+            (duration === 'Any duration' ||
+                (duration === 'Under 2 hours' &&
+                    /(?:^|\D)(?:1|0(?:\.\d+)?)\s*(?:hours?|hrs?)/i.test(
+                        a.duration_label || a.duration || '',
+                    )) ||
+                (duration === 'Half day' &&
+                    /half\s*day/i.test(a.duration_label || a.duration || ''))),
     )
 
     return (
@@ -61,7 +77,7 @@ function Activities() {
                             <input
                                 value={query}
                                 onChange={e => setQuery(e.target.value)}
-                                placeholder="Search cities and activities..."
+                                placeholder={`Search ${tab === 'cities' ? 'cities' : 'activities'}...`}
                                 className="h-12 w-full rounded-xl border border-zinc-200 bg-white pl-12 pr-4 outline-none focus:ring-2 focus:ring-sky-400/40 dark:border-zinc-800 dark:bg-zinc-900"
                             />
                         </div>
@@ -117,12 +133,18 @@ function Activities() {
                                         <option key={x}>{x}</option>
                                     ))}
                                 </select>
-                                <select className="input max-w-xs">
+                                <select
+                                    value={cost}
+                                    onChange={e => setCost(e.target.value)}
+                                    className="input max-w-xs">
                                     <option>Any cost</option>
                                     <option>Under ₹2,000</option>
                                     <option>₹2,000+</option>
                                 </select>
-                                <select className="input max-w-xs">
+                                <select
+                                    value={duration}
+                                    onChange={e => setDuration(e.target.value)}
+                                    className="input max-w-xs">
                                     <option>Any duration</option>
                                     <option>Under 2 hours</option>
                                     <option>Half day</option>

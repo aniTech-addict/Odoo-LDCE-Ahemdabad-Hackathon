@@ -20,8 +20,7 @@ export function InspirationSidebar({ activities }) {
                         <div>
                             <p className="text-sm font-semibold">{a.name}</p>
                             <p className="text-xs text-zinc-600 dark:text-zinc-300">
-                                {a.category} · ₹
-                                {a.price.toLocaleString('en-IN')}
+                                {a.category}
                             </p>
                         </div>
                     </div>

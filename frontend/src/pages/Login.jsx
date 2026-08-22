@@ -24,7 +24,9 @@ function Login() {
     const validate = () => {
         const next = {}
         if (!email.includes('@')) next.email = 'Enter a valid email address'
-        if (password.length < 6) next.password = 'Use at least 6 characters'
+        if (password.length < (mode === 'signup' ? 8 : 6)) {
+            next.password = `Use at least ${mode === 'signup' ? 8 : 6} characters`
+        }
         if (mode === 'signup') {
             if (!firstName.trim()) next.firstName = 'Required'
             if (!lastName.trim()) next.lastName = 'Required'
@@ -39,15 +41,29 @@ function Login() {
     const submit = async e => {
         e.preventDefault()
         if (!validate()) return
-        if (mode === 'signup') {
-            setErrors({ form: 'Sign-up is not connected yet.' })
-            return
-        }
         setPending(true)
-        await new Promise(r => setTimeout(r, 650))
-        login(await api.login(email, password))
-        setPending(false)
-        nav('/trips')
+        setErrors({})
+        try {
+            const result =
+                mode === 'signup'
+                    ? await api.register({
+                          firstName,
+                          lastName,
+                          email,
+                          phone,
+                          password,
+                          city,
+                          country,
+                          additionalInfo: info,
+                      })
+                    : await api.login(email, password)
+            await login(result)
+            nav('/trips')
+        } catch (error) {
+            setErrors({ form: error.message })
+        } finally {
+            setPending(false)
+        }
     }
 
     return (

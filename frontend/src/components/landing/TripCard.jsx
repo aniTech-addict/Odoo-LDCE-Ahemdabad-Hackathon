@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { money } from '../../utils/format'
 
 export function TripCard({ trip, budget }) {
     return (
@@ -15,18 +14,13 @@ export function TripCard({ trip, budget }) {
                     Resyncing...
                 </span>
             </div>
-            <h3 className="text-lg font-semibold">
-                {trip.name}
-            </h3>
+            <h3 className="text-lg font-semibold">{trip.name}</h3>
             <p className="mt-2 text-sm text-zinc-500">
                 {trip.startDate} — {trip.endDate}
             </p>
             <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
                 <div className="h-full w-2/3 rounded-full bg-emerald-500" />
             </div>
-            <p className="mt-2 text-xs text-zinc-500">
-                Budget {money(budget())}
-            </p>
         </Link>
     )
 }

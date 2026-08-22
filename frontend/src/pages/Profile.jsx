@@ -13,11 +13,16 @@ function Profile() {
         return (
             <Shell>
                 <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-5">
-                    <h2 className="serif text-3xl font-semibold mb-2">User Profile</h2>
+                    <h2 className="serif text-3xl font-semibold mb-2">
+                        User Profile
+                    </h2>
                     <p className="text-zinc-500 text-sm max-w-sm mb-5 dark:text-zinc-400">
-                        Please sign in to view your profile settings, configure preferences, and manage your account.
+                        Please sign in to view your profile settings, configure
+                        preferences, and manage your account.
                     </p>
-                    <Link to="/login" className="bg-sky-500 hover:bg-sky-600 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition shadow-sm">
+                    <Link
+                        to="/login"
+                        className="bg-sky-500 hover:bg-sky-600 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition shadow-sm">
                         Sign In / Register
                     </Link>
                 </div>
@@ -27,7 +32,11 @@ function Profile() {
 
     const [tab, setTab] = useState('trips')
     const [editing, setEditing] = useState(false)
-    const [name, setName] = useState(user?.name || 'Guest traveller')
+    const [name, setName] = useState(
+        user?.name ||
+            [user?.first_name, user?.last_name].filter(Boolean).join(' ') ||
+            'Guest traveller',
+    )
     const [email, setEmail] = useState(user?.email || 'traveller@example.com')
     const [language, setLanguage] = useState('English')
     const [emailUpdates, setEmailUpdates] = useState(true)

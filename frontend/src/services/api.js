@@ -16,6 +16,8 @@ export const api = {
         request(`/travel/trips/${id}/like`, {
             method: 'POST',
         }),
+    getNearbyActivities: (lat, lon) =>
+        request(`/travel/cities/activities?cityId=current&lat=${lat}&lon=${lon}`),
     login: (email, password) =>
         request('/auth/login', {
             method: 'POST',
