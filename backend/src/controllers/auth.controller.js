@@ -1,7 +1,6 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import pool from '#root/db.js'
-import defaultCategories from '#src/utils/deafultCategories.js'
 import hashPassword from '#src/utils/hashPassword.js'
 
 /**
