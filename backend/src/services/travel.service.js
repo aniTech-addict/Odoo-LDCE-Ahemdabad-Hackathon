@@ -11,6 +11,9 @@ export {
     getTripService,
     deleteTripService,
     updateTripService,
+    listSharedTripsService,
+    shareTripService,
+    likeTripService,
 } from '#src/services/travel/trip.service.js'
 
 export {

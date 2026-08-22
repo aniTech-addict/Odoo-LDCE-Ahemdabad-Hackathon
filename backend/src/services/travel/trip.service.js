@@ -240,3 +240,56 @@ export async function updateTripService(userId, id, tripPayload) {
         client.release()
     }
 }
+
+export async function listSharedTripsService() {
+    const query = `
+        SELECT t.*, u.first_name || ' ' || u.last_name AS created_by
+        FROM trips t
+        LEFT JOIN users u ON t.user_id = u.id
+        WHERE t.is_shared = true
+        ORDER BY t.updated_at DESC
+    `
+    const result = await pool.query(query)
+    const sharedTrips = []
+    for (const trip of result.rows) {
+        const citiesRes = await pool.query(
+            `SELECT c.name FROM trip_cities tc
+             JOIN cities c ON tc.city_id = c.id
+             WHERE tc.trip_id = $1
+             ORDER BY tc.city_order ASC`,
+            [trip.id]
+        )
+        trip.city_names = citiesRes.rows.map(r => r.name)
+        sharedTrips.push(trip)
+    }
+    return response(200, sharedTrips, 'Shared trips retrieved successfully')
+}
+
+export async function shareTripService(userId, id, sharePayload = {}) {
+    const { is_shared = true } = sharePayload
+    const query = `
+        UPDATE trips
+        SET is_shared = $1
+        WHERE id = $2 AND user_id = $3
+        RETURNING *
+    `
+    const result = await pool.query(query, [is_shared, id, userId])
+    if (result.rows.length === 0) {
+        return response(404, null, 'Trip not found or unauthorized')
+    }
+    return response(200, result.rows[0], 'Trip shared status updated successfully')
+}
+
+export async function likeTripService(id) {
+    const query = `
+        UPDATE trips
+        SET likes = likes + 1
+        WHERE id = $1
+        RETURNING *
+    `
+    const result = await pool.query(query, [id])
+    if (result.rows.length === 0) {
+        return response(404, null, 'Trip not found')
+    }
+    return response(200, result.rows[0], 'Trip liked successfully')
+}

@@ -13,6 +13,9 @@ import {
     optimizeItineraryService,
     listCitiesService,
     listActivitiesService,
+    listSharedTripsService,
+    shareTripService,
+    likeTripService,
 } from '#src/services/travel.service.js'
 
 const sendResult = (res, result) =>
@@ -315,6 +318,48 @@ export const getAdminAnalytics = async (req, res) => {
             error,
             'Get admin analytics error:',
             'Error fetching analytics',
+        )
+    }
+}
+
+export const listSharedTrips = async (req, res) => {
+    try {
+        const result = await listSharedTripsService()
+        return sendResult(res, result)
+    } catch (error) {
+        return sendControllerError(
+            res,
+            error,
+            'List shared trips error:',
+            'Error listing shared trips',
+        )
+    }
+}
+
+export const shareTrip = async (req, res) => {
+    try {
+        const result = await shareTripService(req.userId, req.params.id, req.body)
+        return sendResult(res, result)
+    } catch (error) {
+        return sendControllerError(
+            res,
+            error,
+            'Share trip error:',
+            'Error updating trip share status',
+        )
+    }
+}
+
+export const likeTrip = async (req, res) => {
+    try {
+        const result = await likeTripService(req.params.id)
+        return sendResult(res, result)
+    } catch (error) {
+        return sendControllerError(
+            res,
+            error,
+            'Like trip error:',
+            'Error liking trip',
         )
     }
 }
