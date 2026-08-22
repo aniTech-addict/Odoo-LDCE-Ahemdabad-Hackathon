@@ -107,10 +107,10 @@ function Landing() {
             ))
         }
 
-        // Default: Ungrouped (Limit 6 for clean view)
+        // Default: Ungrouped (Limit 8 for rich view)
         return (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-                {sortedCities.slice(0, 6).map(c => (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8">
+                {sortedCities.slice(0, 8).map(c => (
                     <DestinationCard key={c[0] || c.id} city={c} />
                 ))}
             </div>
