@@ -7,8 +7,8 @@ import { FormInputField } from '../components/login/FormInputField'
 
 function Login() {
     const [mode, setMode] = useState('login')
-    const [email, setEmail] = useState('judge@demo.com')
-    const [password, setPassword] = useState('globetrotter')
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
     const [phone, setPhone] = useState('')
@@ -39,6 +39,10 @@ function Login() {
     const submit = async e => {
         e.preventDefault()
         if (!validate()) return
+        if (mode === 'signup') {
+            setErrors({ form: 'Sign-up is not connected yet.' })
+            return
+        }
         setPending(true)
         await new Promise(r => setTimeout(r, 650))
         login(await api.login(email, password))
@@ -110,7 +114,7 @@ function Login() {
                         setValue={setEmail}
                         fieldKey="email"
                         type="email"
-                        placeholder="you@example.com"
+                        placeholder="name@example.com"
                         errors={errors}
                         setErrors={setErrors}
                     />
@@ -156,7 +160,7 @@ function Login() {
                                 setValue={setPhone}
                                 fieldKey="phone"
                                 type="tel"
-                                placeholder="+91 00000 00000"
+                                placeholder="e.g. +00 00000 00000"
                                 errors={errors}
                                 setErrors={setErrors}
                             />
@@ -165,7 +169,7 @@ function Login() {
                                 value={city}
                                 setValue={setCity}
                                 fieldKey="city"
-                                placeholder="Mumbai"
+                                placeholder="Your city"
                                 errors={errors}
                                 setErrors={setErrors}
                             />
@@ -174,7 +178,7 @@ function Login() {
                                 value={country}
                                 setValue={setCountry}
                                 fieldKey="country"
-                                placeholder="India"
+                                placeholder="Your country"
                                 errors={errors}
                                 setErrors={setErrors}
                             />
@@ -189,13 +193,18 @@ function Login() {
                                     value={info}
                                     onChange={e => setInfo(e.target.value)}
                                     rows="3"
-                                    placeholder="Tell us about your travel style"
+                                    placeholder="A short note about your travel style"
                                     className="w-full resize-none rounded-lg border border-zinc-300 bg-transparent px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-400/40 dark:border-zinc-700"
                                 />
                             </div>
                         </>
                     )}
                 </div>
+                {errors.form && (
+                    <p className="mt-4 text-center text-xs text-amber-600">
+                        {errors.form}
+                    </p>
+                )}
                 <button
                     disabled={pending}
                     className="mt-6 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300">
