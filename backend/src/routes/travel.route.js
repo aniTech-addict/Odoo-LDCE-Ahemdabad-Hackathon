@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import protect from '#src/middlewares/auth.middleware.js'
+import asyncHandler from '#src/middlewares/asyncHandler.middleware.js'
 import {
     searchCity,
     getActivities,
@@ -20,22 +21,22 @@ import {
 const travelRouter = Router()
 
 // Public search endpoints
-travelRouter.get('/cities', listCities)
-travelRouter.get('/activities', listActivities)
-travelRouter.get('/cities/search', searchCity)
-travelRouter.get('/cities/activities', getActivities)
+travelRouter.get('/cities', asyncHandler(listCities))
+travelRouter.get('/activities', asyncHandler(listActivities))
+travelRouter.get('/cities/search', asyncHandler(searchCity))
+travelRouter.get('/cities/activities', asyncHandler(getActivities))
 
 // Protected trip management endpoints
 travelRouter.use(protect)
-travelRouter.post('/trips', createTrip)
-travelRouter.get('/trips', listTrips)
-travelRouter.get('/trips/:id', getTrip)
-travelRouter.put('/trips/:id', updateTrip)
-travelRouter.delete('/trips/:id', deleteTrip)
-travelRouter.post('/trips/:tripId/itinerary', addItineraryItem)
-travelRouter.put('/trips/:tripId/itinerary/:itemId', updateItineraryItem)
-travelRouter.delete('/trips/:tripId/itinerary/:itemId', deleteItineraryItem)
-travelRouter.get('/trips/:tripId/route', getDailyRoute)
-travelRouter.post('/trips/:tripId/optimize', optimizeItinerary)
+travelRouter.post('/trips', asyncHandler(createTrip))
+travelRouter.get('/trips', asyncHandler(listTrips))
+travelRouter.get('/trips/:id', asyncHandler(getTrip))
+travelRouter.put('/trips/:id', asyncHandler(updateTrip))
+travelRouter.delete('/trips/:id', asyncHandler(deleteTrip))
+travelRouter.post('/trips/:tripId/itinerary', asyncHandler(addItineraryItem))
+travelRouter.put('/trips/:tripId/itinerary/:itemId', asyncHandler(updateItineraryItem))
+travelRouter.delete('/trips/:tripId/itinerary/:itemId', asyncHandler(deleteItineraryItem))
+travelRouter.get('/trips/:tripId/route', asyncHandler(getDailyRoute))
+travelRouter.post('/trips/:tripId/optimize', asyncHandler(optimizeItinerary))
 
 export default travelRouter
