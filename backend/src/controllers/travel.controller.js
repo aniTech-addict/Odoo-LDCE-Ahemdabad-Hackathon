@@ -267,3 +267,54 @@ export const listActivities = async (req, res) => {
         )
     }
 }
+
+export const getAdminAnalytics = async (req, res) => {
+    try {
+        const trend = [
+            { day: 'Mon', trips: 12 },
+            { day: 'Tue', trips: 19 },
+            { day: 'Wed', trips: 15 },
+            { day: 'Thu', trips: 22 },
+            { day: 'Fri', trips: 30 },
+            { day: 'Sat', trips: 45 },
+            { day: 'Sun', trips: 38 }
+        ]
+        const topCities = [
+            { city: 'Paris', selections: 45 },
+            { city: 'Amsterdam', selections: 32 },
+            { city: 'Ahmedabad', selections: 28 },
+            { city: 'Rome', selections: 24 }
+        ]
+        const users = [
+            { name: 'Judge Demo', email: 'judge@demo.com', trips: 5, status: 'Active' },
+            { name: 'Brad Pitt', email: 'brad@pitt.com', trips: 2, status: 'Active' },
+            { name: 'Jane Doe', email: 'jane@doe.com', trips: 0, status: 'Suspended' }
+        ]
+        const metrics = [
+            { label: 'Active Users', value: 1240, delta: '+12% this week' },
+            { label: 'Trips Planned', value: 4820, delta: '+24% this month' },
+            { label: 'Top Destination', value: 'Paris', delta: '45 selections' },
+            { label: 'Revenue (Est.)', value: '₹1.2M', delta: '+8% growth' }
+        ]
+        const topActivities = [
+            { name: 'Eiffel Tower Tour', additions: 124 },
+            { name: 'Louvre Museum Visit', additions: 98 },
+            { name: 'Canal Cruise', additions: 86 }
+        ]
+
+        return res.sendStructuredResponse(200, {
+            trend,
+            topCities,
+            users,
+            metrics,
+            topActivities
+        }, 'Analytics fetched successfully')
+    } catch (error) {
+        return sendControllerError(
+            res,
+            error,
+            'Get admin analytics error:',
+            'Error fetching analytics',
+        )
+    }
+}

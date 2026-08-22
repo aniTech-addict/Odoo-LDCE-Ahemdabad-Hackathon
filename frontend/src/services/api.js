@@ -1,11 +1,11 @@
 import { request } from './httpClient'
 
 export const api = {
-    getCities: () => request('/cities'),
-    getActivities: () => request('/activities'),
-    getTrips: () => request('/trips'),
+    getCities: () => request('/travel/cities'),
+    getActivities: () => request('/travel/activities'),
+    getTrips: () => request('/travel/trips'),
     getAdminAnalytics: range =>
-        request(`/admin/analytics?range=${encodeURIComponent(range)}`),
+        request(`/travel/admin/analytics?range=${encodeURIComponent(range)}`),
     login: (email, password) =>
         request('/auth/login', {
             method: 'POST',
