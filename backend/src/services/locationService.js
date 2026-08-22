@@ -13,6 +13,41 @@ if (IS_MOCK_MODE) {
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || process.env.UNSPLASH_API_KEY
 const PEXELS_API_KEY = process.env.PEXELS_API_KEY
 
+const FALLBACK_PICS = {
+    attraction: [
+        'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800',
+        'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800',
+        'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
+        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
+        'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800',
+        'https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=800',
+        'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=800'
+    ],
+    restaurant: [
+        'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
+        'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800',
+        'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
+        'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800'
+    ],
+    leisure: [
+        'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800',
+        'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800',
+        'https://images.unsplash.com/photo-1472214222541-d510753a4907?w=800',
+        'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=800'
+    ]
+}
+
+export function getBeautifulFallbackImage(name, category = 'attraction') {
+    const cat = category.toLowerCase()
+    const list = FALLBACK_PICS[cat] || FALLBACK_PICS.attraction
+    let hash = 0
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash)
+    }
+    const index = Math.abs(hash) % list.length
+    return list[index]
+}
+
 /**
  * Fetches a high-quality landscape or landmark photo using Unsplash or Pexels API
  * @param {string} query - Search term (e.g. "Paris landscape", "Eiffel Tower landmark")
@@ -329,9 +364,9 @@ export async function getCityActivitiesAndCache(cityId, lat, lon, radiusMeters =
                 .replace('catering.', '')
                 .replace('entertainment.', '')
 
-            // Search for a dedicated photo of this place, fall back to map tile
+            // Search for a dedicated photo of this place, fall back to scenic picture
             const imageUrl = await fetchPhoto(`${props.name || props.formatted} landmark`)
-                || `https://maps.geoapify.com/v1/staticmap?style=osm-carto&width=400&height=300&center=lonlat:${props.lon},${props.lat}&zoom=15&marker=lonlat:${props.lon},${props.lat};color:%23ff0000;size:medium&apiKey=${GEOAPIFY_API_KEY}`
+                || getBeautifulFallbackImage(props.name || props.formatted || 'Local Attraction', categoryName)
 
             const upsertQuery = `
                 INSERT INTO activities (id, name, category, price, duration_label, image_url, description, updated_at)
