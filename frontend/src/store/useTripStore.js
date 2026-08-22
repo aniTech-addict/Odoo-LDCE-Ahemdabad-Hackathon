@@ -2,6 +2,36 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { api } from '../services/api'
 
+const normalizeTrip = trip => {
+    const itinerary = Array.isArray(trip.itinerary)
+        ? trip.itinerary.reduce((days, item) => {
+              const date = item.day_date
+              const activities = days[date] || []
+              activities.push({
+                  ...item,
+                  id: item.id,
+                  title: item.title || item.activity_name,
+                  category: item.category || item.activity_category,
+                  image: item.image || item.activity_image,
+                  time: item.time || item.time_of_day || '12:00',
+              })
+              days[date] = activities
+              return days
+          }, {})
+        : trip.itinerary || {}
+
+    return {
+        ...trip,
+        startDate: trip.startDate || trip.start_date,
+        endDate: trip.endDate || trip.end_date,
+        cover: trip.cover || trip.cover_image_url,
+        cities: Array.isArray(trip.cities)
+            ? trip.cities.map(city => city.id || city)
+            : trip.cities || [],
+        itinerary,
+    }
+}
+
 export const useTripStore = create(
     persist(
         (set, get) => ({
@@ -16,7 +46,7 @@ export const useTripStore = create(
                 set({
                     cities,
                     activities,
-                    trips,
+                    trips: trips.map(normalizeTrip),
                     activeTripId: trips[0]?.id || null,
                 }),
             login: async data => {
@@ -33,7 +63,11 @@ export const useTripStore = create(
                 set({ user: normalizedUser, token: data.token })
                 try {
                     const trips = await api.getTrips()
-                    set({ trips, activeTripId: trips[0]?.id || null })
+                    const normalizedTrips = trips.map(normalizeTrip)
+                    set({
+                        trips: normalizedTrips,
+                        activeTripId: normalizedTrips[0]?.id || null,
+                    })
                 } catch (error) {
                     console.error('Error fetching trips after login:', error)
                 }
@@ -49,78 +83,103 @@ export const useTripStore = create(
             setActive: id => set({ activeTripId: id }),
             createTrip: trip =>
                 set(s => ({
-                    trips: [...s.trips, trip],
+                    trips: [...s.trips, normalizeTrip(trip)],
                     activeTripId: trip.id,
                 })),
-            removeTrip: id =>
+            removeTrip: async id => {
+                await api.deleteTrip(id)
                 set(s => ({
                     trips: s.trips.filter(t => t.id !== id),
                     activeTripId:
                         s.activeTripId === id
                             ? s.trips.find(t => t.id !== id)?.id || null
                             : s.activeTripId,
-                })),
+                }))
+            },
             addCity: id =>
                 set(s => ({
                     selectedCities: [...new Set([...s.selectedCities, id])],
                 })),
-            addActivity: (day, activity) =>
+            addActivity: async (day, activity) => {
+                const trip = get().trips.find(x => x.id === get().activeTripId)
+                if (!trip) return
+
+                const payload = {
+                    day_date: day,
+                    time_of_day: '12:00',
+                    title: activity.title || activity.name,
+                    category: activity.category,
+                    price: activity.price || 0,
+                    ...(String(activity.id).startsWith('custom-')
+                        ? {}
+                        : { activity_id: activity.id }),
+                }
+                const saved = await api.addItineraryItem(trip.id, payload)
+                const item = {
+                    ...activity,
+                    ...saved,
+                    id: saved.id,
+                    title: saved.title || activity.title || activity.name,
+                    time: saved.time || saved.time_of_day || '12:00',
+                    image: saved.image || activity.image,
+                }
+
                 set(s => {
-                    const t = s.trips.find(x => x.id === s.activeTripId)
-                    const itinerary = { ...(t.itinerary || {}) }
-                    itinerary[day] = [
-                        ...(itinerary[day] || []),
-                        {
-                            ...activity,
-                            id: activity.id + '-' + Date.now(),
-                            time: '12:00',
-                            title: activity.name,
-                        },
-                    ]
+                    const currentTrip = s.trips.find(x => x.id === trip.id)
+                    const itinerary = { ...(currentTrip.itinerary || {}) }
+                    itinerary[day] = [...(itinerary[day] || []), item]
                     return {
                         trips: s.trips.map(x =>
-                            x.id === t.id ? { ...x, itinerary } : x,
+                            x.id === trip.id ? { ...x, itinerary } : x,
                         ),
                     }
-                }),
-            removeActivity: (day, id) =>
-                set(s => {
-                    const t = s.trips.find(x => x.id === s.activeTripId)
-                    return {
-                        trips: s.trips.map(x =>
-                            x.id === t.id
-                                ? {
-                                      ...x,
-                                      itinerary: {
-                                          ...t.itinerary,
-                                          [day]: t.itinerary[day].filter(
-                                              a => a.id !== id,
-                                          ),
-                                      },
-                                  }
-                                : x,
-                        ),
-                    }
-                }),
-            editTime: (day, id, time) =>
-                set(s => {
-                    const t = s.trips.find(x => x.id === s.activeTripId)
-                    return {
-                        trips: s.trips.map(x =>
-                            x.id === t.id
-                                ? {
-                                      ...x,
-                                      itinerary: {
-                                          ...t.itinerary,
-                                          [day]: t.itinerary[day].map(a =>
-                                              a.id === id ? { ...a, time } : a,
-                                          ),
-                                      },
-                                  }
-                                : x,
-                        ),
-                    }
-                }),
+                })
+            },
+            removeActivity: async (day, id) => {
+                const trip = get().trips.find(x => x.id === get().activeTripId)
+                if (!trip) return
+                await api.deleteItineraryItem(trip.id, id)
+                set(s => ({
+                    trips: s.trips.map(x =>
+                        x.id === trip.id
+                            ? {
+                                  ...x,
+                                  itinerary: {
+                                      ...x.itinerary,
+                                      [day]: (x.itinerary?.[day] || []).filter(
+                                          activity => activity.id !== id,
+                                      ),
+                                  },
+                              }
+                            : x,
+                    ),
+                }))
+            },
+            editTime: async (day, id, time) => {
+                const trip = get().trips.find(x => x.id === get().activeTripId)
+                if (!trip) return
+                await api.updateItineraryItem(trip.id, id, {
+                    time_of_day: time,
+                })
+                set(s => ({
+                    trips: s.trips.map(x =>
+                        x.id === trip.id
+                            ? {
+                                  ...x,
+                                  itinerary: {
+                                      ...x.itinerary,
+                                      [day]: (x.itinerary?.[day] || []).map(
+                                          activity =>
+                                              activity.id === id
+                                                  ? { ...activity, time }
+                                                  : activity,
+                                      ),
+                                  },
+                              }
+                            : x,
+                    ),
+                }))
+            },
             moveActivity: (from, to, id) =>
                 set(s => {
                     const t = s.trips.find(x => x.id === s.activeTripId)

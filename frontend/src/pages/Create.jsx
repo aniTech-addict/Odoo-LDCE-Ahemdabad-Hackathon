@@ -5,6 +5,7 @@ import { Shell } from '../components/Shell'
 import { useTripStore } from '../store/useTripStore'
 import { InspirationSidebar } from '../components/create/InspirationSidebar'
 import { CitySelectionGrid } from '../components/create/CitySelectionGrid'
+import { api } from '../services/api'
 
 function Create() {
     const [step, setStep] = useState(1)
@@ -14,6 +15,8 @@ function Create() {
     const [endDate, setEndDate] = useState('')
     const [description, setDescription] = useState('')
     const [cover, setCover] = useState('')
+    const [pending, setPending] = useState(false)
+    const [error, setError] = useState('')
     const { cities, selectedCities, addCity, createTrip, activities } =
         useTripStore()
     const nav = useNavigate()
@@ -194,29 +197,46 @@ function Create() {
                     ) : (
                         <button
                             className="btn bg-sky-500 hover:bg-sky-600 text-white font-medium px-4 py-2 rounded-lg text-sm transition shadow-sm flex items-center gap-1.5"
-                            onClick={() => {
-                                createTrip({
-                                    id: 'trip-' + Date.now(),
-                                    name: name || 'New journey',
-                                    cities: selectedCities,
-                                    startDate: startDate || '2026-07-01',
-                                    endDate: endDate || '2026-07-08',
-                                    description,
-                                    status: 'Upcoming',
-                                    cover:
-                                        cover ||
-                                        cities.find(
-                                            c => c.id === selectedCities[0],
-                                        )?.image ||
-                                        cities[0]?.image,
-                                    itinerary: {},
-                                })
-                                nav('/builder')
-                            }}>
-                            Build itinerary
+                            onClick={async () => {
+                                if (
+                                    !name.trim() ||
+                                    !startDate ||
+                                    !endDate ||
+                                    !selectedCities.length
+                                ) {
+                                    setError(
+                                        'Add a trip name, dates, and at least one city.',
+                                    )
+                                    return
+                                }
+                                setPending(true)
+                                setError('')
+                                try {
+                                    const createdTrip = await api.createTrip({
+                                        name: name.trim(),
+                                        description,
+                                        start_date: startDate,
+                                        end_date: endDate,
+                                        city_ids: selectedCities,
+                                    })
+                                    createTrip(createdTrip)
+                                    nav('/builder')
+                                } catch (requestError) {
+                                    setError(requestError.message)
+                                } finally {
+                                    setPending(false)
+                                }
+                            }}
+                            disabled={pending}>
+                            {pending ? 'Creating...' : 'Build itinerary'}
                         </button>
                     )}
                 </div>
+                {error && (
+                    <p className="mt-4 max-w-xl text-sm text-rose-600">
+                        {error}
+                    </p>
+                )}
             </div>
         </Shell>
     )
