@@ -511,7 +511,7 @@ export async function calculateRouteMatrix(coordinatesArray, mode = 'walk') {
     }
 
     const data = await response.json()
-    return data
+    return { matrix: data.sources_to_targets || data.matrix || [] }
 }
 
 // --- HELPER UTILITIES ---
