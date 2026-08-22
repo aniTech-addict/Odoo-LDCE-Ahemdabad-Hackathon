@@ -846,3 +846,51 @@ export const optimizeItinerary = async (req, res) => {
         )
     }
 }
+
+/**
+ * Lists all cities available in the database.
+ */
+export const listCities = async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT id, name, country, region, image_url AS image, blurb, cost_index, popularity 
+             FROM cities ORDER BY name`
+        )
+        return res.sendStructuredResponse(
+            200,
+            result.rows,
+            'Cities listed successfully',
+        )
+    } catch (error) {
+        console.error('List cities error:', error)
+        return res.sendStructuredResponse(
+            500,
+            null,
+            'Error listing cities',
+        )
+    }
+}
+
+/**
+ * Lists all activities available in the database.
+ */
+export const listActivities = async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT id, name, category, price, duration_label, image_url AS image, description 
+             FROM activities ORDER BY name`
+        )
+        return res.sendStructuredResponse(
+            200,
+            result.rows,
+            'Activities listed successfully',
+        )
+    } catch (error) {
+        console.error('List activities error:', error)
+        return res.sendStructuredResponse(
+            500,
+            null,
+            'Error listing activities',
+        )
+    }
+}
