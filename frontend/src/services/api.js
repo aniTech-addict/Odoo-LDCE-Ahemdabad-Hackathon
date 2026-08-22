@@ -6,6 +6,16 @@ export const api = {
     getTrips: () => request('/travel/trips'),
     getAdminAnalytics: range =>
         request(`/travel/admin/analytics?range=${encodeURIComponent(range)}`),
+    getSharedTrips: () => request('/travel/shared'),
+    shareTrip: (id, isShared) =>
+        request(`/travel/trips/${id}/share`, {
+            method: 'POST',
+            body: JSON.stringify({ is_shared: isShared }),
+        }),
+    likeTrip: id =>
+        request(`/travel/trips/${id}/like`, {
+            method: 'POST',
+        }),
     login: (email, password) =>
         request('/auth/login', {
             method: 'POST',

@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { api } from '../services/api'
+
 export const useTripStore = create(
     persist(
         (set, get) => ({
@@ -17,7 +19,15 @@ export const useTripStore = create(
                     trips,
                     activeTripId: trips[0]?.id || null,
                 }),
-            login: data => set({ user: data.user, token: data.token }),
+            login: async data => {
+                set({ user: data.user, token: data.token })
+                try {
+                    const trips = await api.getTrips()
+                    set({ trips, activeTripId: trips[0]?.id || null })
+                } catch (error) {
+                    console.error('Error fetching trips after login:', error)
+                }
+            },
             logout: () =>
                 set({
                     user: null,
