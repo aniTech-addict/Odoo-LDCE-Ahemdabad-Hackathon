@@ -1,19 +1,24 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { Shell } from '../components/Shell'
 import { useTripStore } from '../store/useTripStore'
+import { CalendarCell } from '../components/calendar/CalendarCell'
 
 function Calendar() {
     const { trips, activeTripId } = useTripStore()
     const t = trips.find(x => x.id === activeTripId) || trips[0]
+
     const events = Object.entries(t.itinerary || {}).reduce(
         (acc, [date, items]) => ({ ...acc, [date]: items }),
         {},
     )
+
     const start = new Date(t.startDate + 'T00:00:00')
     const end = new Date(t.endDate + 'T00:00:00')
+
     const [month, setMonth] = useState(
         new Date(start.getFullYear(), start.getMonth(), 1),
     )
+
     const days = []
     const cursor = new Date(month.getFullYear(), month.getMonth(), 1)
     const first = (cursor.getDay() + 6) % 7
@@ -22,16 +27,21 @@ function Calendar() {
         days.push(new Date(cursor))
         cursor.setDate(cursor.getDate() + 1)
     }
+
     const prev = () =>
         setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))
     const next = () =>
         setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))
+
     const key = d => {
         const y = d.getFullYear()
         const m = String(d.getMonth() + 1).padStart(2, '0')
         const day = String(d.getDate()).padStart(2, '0')
         return `${y}-${m}-${day}`
     }
+
+    const todayStr = key(new Date())
+
     return (
         <Shell>
             <div className="min-h-screen bg-zinc-50 px-5 py-8 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
@@ -45,7 +55,7 @@ function Calendar() {
                                 Calendar
                             </h1>
                             <p className="mt-2 text-sm text-zinc-500">
-                                {t.name} Â· {t.startDate} â€” {t.endDate}
+                                {t.name} · {t.startDate} — {t.endDate}
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -53,7 +63,7 @@ function Calendar() {
                                 onClick={prev}
                                 aria-label="Previous month"
                                 className="rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-700">
-                                â€¹
+                                ‹
                             </button>
                             <p className="min-w-36 text-center font-semibold">
                                 {month.toLocaleDateString('en-US', {
@@ -65,7 +75,7 @@ function Calendar() {
                                 onClick={next}
                                 aria-label="Next month"
                                 className="rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-700">
-                                â€º
+                                ›
                             </button>
                         </div>
                     </header>
@@ -90,41 +100,17 @@ function Calendar() {
                                 const dateKey = day && key(day)
                                 const items = events[dateKey] || []
                                 const inTrip = day && day >= start && day <= end
+                                const isToday = dateKey === todayStr
+
                                 return (
-                                    <div
+                                    <CalendarCell
                                         key={i}
-                                        className={`min-h-28 border-b border-r border-zinc-100 p-2 dark:border-zinc-800 sm:min-h-36 ${inTrip ? 'bg-white dark:bg-zinc-900' : 'bg-zinc-50/70 dark:bg-zinc-950/30'}`}>
-                                        {day && (
-                                            <>
-                                                <div
-                                                    className={`mb-2 flex h-7 w-7 items-center justify-center rounded-full text-sm ${dateKey === key(new Date()) ? 'bg-sky-500 font-semibold text-white' : 'text-zinc-600 dark:text-zinc-300'}`}>
-                                                    {day.getDate()}
-                                                </div>
-                                                <div className="space-y-1">
-                                                    {items.map(item => (
-                                                        <div
-                                                            key={item.id}
-                                                            className="min-h-12 rounded-md border border-sky-200 bg-sky-100 px-2 py-2 text-xs font-semibold leading-4 text-sky-900 shadow-sm dark:border-sky-800 dark:bg-sky-900/70 dark:text-sky-100">
-                                                            <span className="mb-0.5 block text-[10px] font-bold text-sky-700 dark:text-sky-300">
-                                                                {item.time ||
-                                                                    'All day'}
-                                                            </span>
-                                                            <span className="block truncate">
-                                                                {item.title ||
-                                                                    item.name ||
-                                                                    'Trip event'}
-                                                            </span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                                {inTrip && !items.length && (
-                                                    <span className="text-[10px] text-zinc-400">
-                                                        Open day
-                                                    </span>
-                                                )}
-                                            </>
-                                        )}
-                                    </div>
+                                        day={day}
+                                        dateKey={dateKey}
+                                        items={items}
+                                        inTrip={inTrip}
+                                        isToday={isToday}
+                                    />
                                 )
                             })}
                         </div>
