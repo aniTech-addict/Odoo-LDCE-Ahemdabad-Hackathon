@@ -5,10 +5,11 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "start": "node server.js",
-        "dev": "nodemon server.js",
+        "start": "docker compose up -d && node server.js",
+        "dev": " docker compose up -d && nodemon server.js",
         "migrate": "node src/scripts/migrate.js",
         "migrate:reset": "node src/scripts/migrate.js --reset",
+        "seed": "node src/scripts/seed.js",
         "node:seed": "node src/scripts/seed.js",
         "db:view": "concurrently \"pnpm drizzle-kit studio\" \"pnpm dlx drizzle-lab visualizer\" \"sleep 1 && pnpm dlx drizzle-view\""
     },
