@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import protect from '#src/middlewares/auth.middleware.js'
+import asyncHandler from '#src/middlewares/asyncHandler.middleware.js'
 import {
     deleteUser,
     updateUser,
@@ -8,7 +9,7 @@ import {
 const userRouter = Router()
 
 userRouter.use(protect)
-userRouter.put('/update', updateUser)
-userRouter.delete('/delete', deleteUser)
+userRouter.put('/update', asyncHandler(updateUser))
+userRouter.delete('/delete', asyncHandler(deleteUser))
 
 export default userRouter
