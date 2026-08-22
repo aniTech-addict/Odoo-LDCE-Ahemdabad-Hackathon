@@ -10,6 +10,7 @@ import { LiveBudgetSidebar } from '../components/builder/LiveBudgetSidebar'
 
 function Builder() {
     const {
+        user,
         trips,
         activeTripId,
         activities,
@@ -17,6 +18,27 @@ function Builder() {
         addActivity,
         moveActivity,
     } = useTripStore()
+
+    if (!user) {
+        return (
+            <Shell>
+                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-5">
+                    <h2 className="serif text-3xl font-semibold mb-2">
+                        Itinerary Builder
+                    </h2>
+                    <p className="text-zinc-500 text-sm max-w-sm mb-5 dark:text-zinc-400">
+                        Please sign in to build your custom itinerary and
+                        arrange activities.
+                    </p>
+                    <Link
+                        to="/login"
+                        className="bg-sky-500 hover:bg-sky-600 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition shadow-sm">
+                        Sign In / Register
+                    </Link>
+                </div>
+            </Shell>
+        )
+    }
 
     const t = trips.find(x => x.id === activeTripId) || trips[0]
     const [showAdd, setShowAdd] = useState(false)
@@ -67,7 +89,7 @@ function Builder() {
                             </button>
                             <Link
                                 className="btn btn-gold flex items-center gap-2"
-                                to={`/share/${t.id}`}>
+                                to="/share">
                                 <Share2 size={16} /> Share trip
                             </Link>
                         </div>
@@ -81,7 +103,7 @@ function Builder() {
                                         over.id,
                                         active.id,
                                     )
-                             }}>
+                            }}>
                             <div className="space-y-8">
                                 {Object.entries(t.itinerary || {}).map(
                                     ([d, items]) => (

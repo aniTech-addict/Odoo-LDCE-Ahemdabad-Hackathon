@@ -6,7 +6,24 @@ import { useTripStore } from '../store/useTripStore'
 import { TripListItem } from '../components/trips/TripListItem'
 
 function Trips() {
-    const { trips, setActive, removeTrip } = useTripStore()
+    const { user, trips, setActive, removeTrip } = useTripStore()
+
+    if (!user) {
+        return (
+            <Shell>
+                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-5">
+                    <h2 className="serif text-3xl font-semibold mb-2">My Trips</h2>
+                    <p className="text-zinc-500 text-sm max-w-sm mb-5 dark:text-zinc-400">
+                        Please sign in to view your saved trips and plan new adventures.
+                    </p>
+                    <Link to="/login" className="bg-sky-500 hover:bg-sky-600 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition shadow-sm">
+                        Sign In / Register
+                    </Link>
+                </div>
+            </Shell>
+        )
+    }
+
     const [tab, setTab] = useState('Upcoming')
     const [query, setQuery] = useState('')
     const [group, setGroup] = useState('Status')

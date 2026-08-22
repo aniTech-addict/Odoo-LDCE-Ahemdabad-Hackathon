@@ -1,11 +1,40 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Shell } from '../components/Shell'
 import { useTripStore } from '../store/useTripStore'
 import { CalendarCell } from '../components/calendar/CalendarCell'
 
 function Calendar() {
-    const { trips, activeTripId } = useTripStore()
+    const { user, trips, activeTripId } = useTripStore()
+
+    if (!user) {
+        return (
+            <Shell>
+                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-5">
+                    <h2 className="serif text-3xl font-semibold mb-2">Calendar & Timeline</h2>
+                    <p className="text-zinc-500 text-sm max-w-sm mb-5 dark:text-zinc-400">
+                        Please sign in to view your itinerary calendar and events.
+                    </p>
+                    <Link to="/login" className="bg-sky-500 hover:bg-sky-600 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition shadow-sm">
+                        Sign In / Register
+                    </Link>
+                </div>
+            </Shell>
+        )
+    }
+
     const t = trips.find(x => x.id === activeTripId) || trips[0]
+
+    if (!t) {
+        return (
+            <Shell>
+                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-5">
+                    <p className="text-zinc-500 text-sm dark:text-zinc-400">No active trips found. Start by planning a trip to view your calendar!</p>
+                    <Link to="/create" className="mt-4 bg-sky-500 hover:bg-sky-600 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition shadow-sm">Plan a Trip</Link>
+                </div>
+            </Shell>
+        )
+    }
 
     const events = Object.entries(t.itinerary || {}).reduce(
         (acc, [date, items]) => ({ ...acc, [date]: items }),

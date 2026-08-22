@@ -179,21 +179,21 @@ function Create() {
                 )}
                 <div className="flex justify-between mt-12 max-w-xl">
                     <button
-                        className="btn border border-navy/20"
+                        className="btn border border-zinc-300 px-4 py-2 rounded-lg text-sm text-zinc-700 hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
                         disabled={step === 1}
                         onClick={() => setStep(step - 1)}>
                         Back
                     </button>
                     {step < 3 ? (
                         <button
-                            className="btn btn-ink"
-                            onClick={() => setStep(3)}>
+                            className="btn bg-sky-500 hover:bg-sky-600 text-white font-medium px-4 py-2 rounded-lg text-sm transition shadow-sm flex items-center gap-1.5"
+                            onClick={() => setStep(step + 1)}>
                             Continue{' '}
                             <ArrowRight className="inline ml-2" size={16} />
                         </button>
                     ) : (
                         <button
-                            className="btn btn-gold"
+                            className="btn bg-sky-500 hover:bg-sky-600 text-white font-medium px-4 py-2 rounded-lg text-sm transition shadow-sm flex items-center gap-1.5"
                             onClick={() => {
                                 createTrip({
                                     id: 'trip-' + Date.now(),

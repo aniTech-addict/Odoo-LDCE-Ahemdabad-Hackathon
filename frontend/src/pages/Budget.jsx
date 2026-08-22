@@ -9,8 +9,37 @@ import { BudgetAlertsCard } from '../components/budget/BudgetAlertsCard'
 import { MajorExpensesList } from '../components/budget/MajorExpensesList'
 
 function Budget() {
-    const { budget, trips, activeTripId } = useTripStore()
+    const { user, budget, trips, activeTripId } = useTripStore()
+
+    if (!user) {
+        return (
+            <Shell>
+                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-5">
+                    <h2 className="serif text-3xl font-semibold mb-2">Budget & Expenses</h2>
+                    <p className="text-zinc-500 text-sm max-w-sm mb-5 dark:text-zinc-400">
+                        Please sign in to view your budget reports, charts, and expense lists.
+                    </p>
+                    <Link to="/login" className="bg-sky-500 hover:bg-sky-600 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition shadow-sm">
+                        Sign In / Register
+                    </Link>
+                </div>
+            </Shell>
+        )
+    }
+
     const t = trips.find(x => x.id === activeTripId) || trips[0]
+
+    if (!t) {
+        return (
+            <Shell>
+                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-5">
+                    <p className="text-zinc-500 text-sm dark:text-zinc-400">No active trips found. Start by planning a trip to view your budget!</p>
+                    <Link to="/create" className="mt-4 bg-sky-500 hover:bg-sky-600 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition shadow-sm">Plan a Trip</Link>
+                </div>
+            </Shell>
+        )
+    }
+
     const total = budget()
     const allocated = Math.max(total + Math.round(total * 0.18), 50000)
     const remaining = allocated - total
