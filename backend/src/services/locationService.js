@@ -4,6 +4,12 @@ import pool from '#root/db.js'
 dotenv.config()
 
 const GEOAPIFY_API_KEY = process.env.GEOAPIFY_API_KEY
+const IS_MOCK_MODE = !GEOAPIFY_API_KEY || GEOAPIFY_API_KEY === 'mock'
+
+if (IS_MOCK_MODE) {
+    console.log('[Geoapify] Warning: GEOAPIFY_API_KEY not found. Running in MOCK MODE with fallback local data.')
+}
+
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || process.env.UNSPLASH_API_KEY
 const PEXELS_API_KEY = process.env.PEXELS_API_KEY
 
@@ -78,12 +84,80 @@ export async function fetchWikiSummary(cityName) {
  * @returns {Promise<object|null>} The city database record with transient lat/lon
  */
 export async function geocodeCityAndCache(cityName) {
-    if (!GEOAPIFY_API_KEY) {
-        throw new Error('GEOAPIFY_API_KEY is not defined.')
+    const trimmedName = cityName.trim()
+
+    if (IS_MOCK_MODE) {
+        const nameLower = trimmedName.toLowerCase()
+        let mockCity = {
+            id: 'mock-generic-id',
+            name: trimmedName,
+            country: 'Mock Country',
+            region: 'Mock Region',
+            image_url: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
+            blurb: `Welcome to ${trimmedName}! A beautiful destination to explore.`,
+            cost_index: 0,
+            popularity: 50,
+            lat: 23.0225,
+            lon: 72.5714
+        }
+        if (nameLower.includes('ahmedabad')) {
+            mockCity = {
+                id: 'mock-ahmedabad-id',
+                name: 'Ahmedabad',
+                country: 'India',
+                region: 'Gujarat',
+                image_url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
+                blurb: 'Ahmedabad, in western India, is the largest city in the state of Gujarat.',
+                cost_index: 0,
+                popularity: 60,
+                lat: 23.0225,
+                lon: 72.5714
+            }
+        } else if (nameLower.includes('paris')) {
+            mockCity = {
+                id: 'mock-paris-id',
+                name: 'Paris',
+                country: 'France',
+                region: 'Île-de-France',
+                image_url: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800',
+                blurb: 'Paris, France’s capital, is a major European city and a global center for art, fashion, gastronomy and culture.',
+                cost_index: 0,
+                popularity: 90,
+                lat: 48.8566,
+                lon: 2.3522
+            }
+        }
+
+        // Cache the mock city in the database so foreign keys can reference it!
+        const upsertQuery = `
+            INSERT INTO cities (id, name, country, region, image_url, blurb, cost_index, popularity, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+            ON CONFLICT (id) DO UPDATE SET
+                name = EXCLUDED.name,
+                country = EXCLUDED.country,
+                region = EXCLUDED.region,
+                image_url = EXCLUDED.image_url,
+                blurb = EXCLUDED.blurb,
+                updated_at = NOW()
+            RETURNING *
+        `
+        const res = await pool.query(upsertQuery, [
+            mockCity.id,
+            mockCity.name,
+            mockCity.country,
+            mockCity.region,
+            mockCity.image_url,
+            mockCity.blurb,
+            mockCity.cost_index,
+            mockCity.popularity
+        ])
+        return {
+            ...res.rows[0],
+            lat: mockCity.lat,
+            lon: mockCity.lon
+        }
     }
 
-    const trimmedName = cityName.trim()
-    
     // Check if exists in DB
     const dbCheck = await pool.query(
         'SELECT * FROM cities WHERE LOWER(name) = LOWER($1) OR id = $2',
@@ -158,8 +232,53 @@ export async function geocodeCityAndCache(cityName) {
  * @returns {Promise<Array<object>>} List of activities
  */
 export async function getCityActivitiesAndCache(cityId, lat, lon, radiusMeters = 5000) {
-    if (!GEOAPIFY_API_KEY) {
-        throw new Error('GEOAPIFY_API_KEY is not defined.')
+    if (IS_MOCK_MODE) {
+        const mockActs = [
+            {
+                id: `${cityId}-attraction-1`,
+                name: 'Sabarmati Ashram',
+                category: 'attraction',
+                price: 0,
+                duration_label: '1-2 hours',
+                image_url: 'https://images.unsplash.com/photo-1588508065123-287b28e013da?w=400',
+                description: 'Gandhi\'s humble home and museum on the riverbank.'
+            },
+            {
+                id: `${cityId}-attraction-2`,
+                name: 'Adalaj Stepwell',
+                category: 'attraction',
+                price: 50,
+                duration_label: '1 hour',
+                image_url: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?w=400',
+                description: 'Unique 5-story underground stone well with carvings.'
+            }
+        ]
+
+        const activitiesList = []
+        for (const act of mockActs) {
+            const upsertQuery = `
+                INSERT INTO activities (id, name, category, price, duration_label, image_url, description, updated_at)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+                ON CONFLICT (id) DO UPDATE SET
+                    name = EXCLUDED.name,
+                    category = EXCLUDED.category,
+                    image_url = EXCLUDED.image_url,
+                    description = EXCLUDED.description,
+                    updated_at = NOW()
+                RETURNING *
+            `
+            const insertResult = await pool.query(upsertQuery, [
+                act.id,
+                act.name,
+                act.category,
+                act.price,
+                act.duration_label,
+                act.image_url,
+                act.description
+            ])
+            activitiesList.push(insertResult.rows[0])
+        }
+        return activitiesList
     }
 
     const categories = 'tourism.attraction,entertainment.culture,leisure.park,catering.restaurant'
@@ -251,6 +370,24 @@ export async function getCityActivitiesAndCache(cityId, lat, lon, radiusMeters =
  * @returns {Promise<object>} Route geometry and metadata
  */
 export async function calculateItineraryRoute(coordinatesArray, mode = 'walk') {
+    if (IS_MOCK_MODE) {
+        return {
+            distance_meters: 1500,
+            duration_seconds: 1200,
+            legs: [
+                {
+                    distance: 1500,
+                    time: 1200,
+                    steps: [
+                        'Head north toward Ashram Road',
+                        'Turn right onto Ashram Road',
+                        'Destination will be on the left'
+                    ]
+                }
+            ]
+        }
+    }
+
     if (!GEOAPIFY_API_KEY) {
         throw new Error('GEOAPIFY_API_KEY is not defined.')
     }
@@ -293,6 +430,13 @@ export async function calculateItineraryRoute(coordinatesArray, mode = 'walk') {
  * @returns {Promise<{lat: number, lon: number}|null>} coordinates, or null if query failed
  */
 export async function getPlaceCoordinates(placeId) {
+    if (IS_MOCK_MODE) {
+        return {
+            lat: 23.0225,
+            lon: 72.5714
+        }
+    }
+
     if (!GEOAPIFY_API_KEY) {
         throw new Error('GEOAPIFY_API_KEY is not defined.')
     }
