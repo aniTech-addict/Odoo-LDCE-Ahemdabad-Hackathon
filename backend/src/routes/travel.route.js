@@ -18,7 +18,8 @@ import {
     listActivities,
     listSharedTrips,
     shareTrip,
-    likeTrip
+    likeTrip,
+    getAdminAnalytics,
 } from '#src/controllers/travel.controller.js'
 
 const travelRouter = Router()
@@ -39,9 +40,16 @@ travelRouter.get('/trips/:id', asyncHandler(getTrip))
 travelRouter.put('/trips/:id', asyncHandler(updateTrip))
 travelRouter.delete('/trips/:id', asyncHandler(deleteTrip))
 travelRouter.post('/trips/:id/share', asyncHandler(shareTrip))
+travelRouter.get('/admin/analytics', asyncHandler(getAdminAnalytics))
 travelRouter.post('/trips/:tripId/itinerary', asyncHandler(addItineraryItem))
-travelRouter.put('/trips/:tripId/itinerary/:itemId', asyncHandler(updateItineraryItem))
-travelRouter.delete('/trips/:tripId/itinerary/:itemId', asyncHandler(deleteItineraryItem))
+travelRouter.put(
+    '/trips/:tripId/itinerary/:itemId',
+    asyncHandler(updateItineraryItem),
+)
+travelRouter.delete(
+    '/trips/:tripId/itinerary/:itemId',
+    asyncHandler(deleteItineraryItem),
+)
 travelRouter.get('/trips/:tripId/route', asyncHandler(getDailyRoute))
 travelRouter.post('/trips/:tripId/optimize', asyncHandler(optimizeItinerary))
 

@@ -8,11 +8,7 @@ export const deleteUser = async (req, res) => {
         const result = await pool.query(query, [userId])
 
         if (result.rowCount === 0) {
-            return res.sendStructuredResponse(
-                404,
-                null,
-                'user not found',
-            )
+            return res.sendStructuredResponse(404, null, 'user not found')
         } else {
             return res.sendStructuredResponse(
                 200,
@@ -21,56 +17,43 @@ export const deleteUser = async (req, res) => {
             )
         }
     } catch (error) {
-        return res.sendStructuredResponse(
-            500,
-            null,
-            'Error deleting user',
-        )
+        return res.sendStructuredResponse(500, null, 'Error deleting user')
     }
 }
 
 export const updateUser = async (req, res) => {
     const userId = req.userId
-    const {
-        name,
-        email,
-        password,
-        city, 
-        country
-        
-    } = req.body
+    const { name, email, city, country, additionalInfo } = req.body
+
+    const [firstName, ...lastNameParts] = (name || '').trim().split(/\s+/)
+    const lastName = lastNameParts.join(' ')
 
     const query = `
-        UPDATE users set name=COALESCE($1, name), email=COALESCE($2, email), password=COALESCE($3, password),
-        currency=COALESCE($4, currency), currency_code=COALESCE($5, currency_code) where id=$6
+        UPDATE users
+        SET first_name = COALESCE(NULLIF($1, ''), first_name),
+            last_name = COALESCE(NULLIF($2, ''), last_name),
+            email = COALESCE($3, email),
+            city = COALESCE($4, city),
+            country = COALESCE($5, country),
+            additional_info = COALESCE($6, additional_info)
+        WHERE id = $7
     `
     try {
         const result = await pool.query(query, [
-            name,
+            firstName,
+            lastName,
             email,
-            password,
-            currency,
-            currency_code,
+            city,
+            country,
+            additionalInfo,
             userId,
         ])
         if (result.rowCount === 0) {
-            return res.sendStructuredResponse(
-                404,
-                null,
-                'user not found',
-            )
+            return res.sendStructuredResponse(404, null, 'user not found')
         } else {
-            res.sendStructuredResponse(
-                200,
-                null,
-                'user updated successfully',
-            )
+            res.sendStructuredResponse(200, null, 'user updated successfully')
         }
     } catch (error) {
-        return res.sendStructuredResponse(
-            500,
-            null,
-            'Error updating user',
-        )
+        return res.sendStructuredResponse(500, null, 'Error updating user')
     }
 }

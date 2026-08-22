@@ -67,4 +67,13 @@ export const api = {
             method: 'POST',
             body: JSON.stringify(data),
         }),
+    updateUser: data =>
+        request('/users/update', {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        }),
+    deleteUser: () =>
+        request('/users/delete', {
+            method: 'DELETE',
+        }),
 }
