@@ -6,9 +6,9 @@ export const api = {
     getTrips: () => request('/trips'),
     getAdminAnalytics: range =>
         request(`/admin/analytics?range=${encodeURIComponent(range)}`),
-    login: email =>
+    login: (email, password) =>
         request('/auth/login', {
             method: 'POST',
-            body: JSON.stringify({ email }),
+            body: JSON.stringify({ email, password }),
         }),
 }
