@@ -8,7 +8,7 @@ import {
     getTrip,
     deleteTrip,
     addItineraryItem,
-    getDailyRoute
+    getDailyRoute,
 } from '#src/controllers/travel.controller.js'
 
 const travelRouter = Router()
