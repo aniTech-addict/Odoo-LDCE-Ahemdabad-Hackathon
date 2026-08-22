@@ -12,6 +12,8 @@ import { api } from '../services/api'
 function Landing() {
     const { cities, trips, budget, activities } = useTripStore()
     const [query, setQuery] = useState('')
+    const [groupBy, setGroupBy] = useState('none') // 'none', 'region', 'cost'
+    const [sortBy, setSortBy] = useState('popularity') // 'popularity', 'cost'
     const [nearby, setNearby] = useState([])
     const [locationLabel, setLocationLabel] = useState('Global Destinations')
     const [geoLoading, setGeoLoading] = useState(false)
@@ -56,6 +58,65 @@ function Landing() {
         }
     }, [])
 
+    // Apply sorting to cities
+    const sortedCities = [...filteredCities].sort((a, b) => {
+        if (sortBy === 'cost') {
+            return (a.cost_index || 0) - (b.cost_index || 0)
+        }
+        return (b.popularity || 0) - (a.popularity || 0)
+    })
+
+    // Apply grouping to cities
+    const renderCitySections = () => {
+        if (groupBy === 'region') {
+            const groups = sortedCities.reduce((acc, c) => {
+                const reg = c.region || 'Other'
+                if (!acc[reg]) acc[reg] = []
+                acc[reg].push(c)
+                return acc
+            }, {})
+            return Object.entries(groups).map(([groupName, list]) => (
+                <div key={groupName} className="mb-6">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-3">{groupName}</h3>
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+                        {list.map(c => (
+                            <DestinationCard key={c[0] || c.id} city={c} />
+                        ))}
+                    </div>
+                </div>
+            ))
+        }
+
+        if (groupBy === 'cost') {
+            const groups = sortedCities.reduce((acc, c) => {
+                const costVal = c.cost_index || 0
+                const label = costVal <= 2 ? 'Budget Friendly' : costVal === 3 ? 'Mid-Range' : 'Luxury / Premium'
+                if (!acc[label]) acc[label] = []
+                acc[label].push(c)
+                return acc
+            }, {})
+            return Object.entries(groups).map(([groupName, list]) => (
+                <div key={groupName} className="mb-6">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-3">{groupName}</h3>
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+                        {list.map(c => (
+                            <DestinationCard key={c[0] || c.id} city={c} />
+                        ))}
+                    </div>
+                </div>
+            ))
+        }
+
+        // Default: Ungrouped (Limit 6 for clean view)
+        return (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+                {sortedCities.slice(0, 6).map(c => (
+                    <DestinationCard key={c[0] || c.id} city={c} />
+                ))}
+            </div>
+        )
+    }
+
     // Ensure we render at least 15 activities (nearby first, fallback to cached activities)
     const inspirationsList = (nearby.length >= 15 ? nearby : activities).slice(0, 18)
 
@@ -64,7 +125,14 @@ function Landing() {
             <div className="min-h-screen bg-paper">
                 <main className="mx-auto grid min-h-[calc(100vh-80px)] max-w-7xl grid-cols-12 gap-6 px-5 py-6">
                     <LandingHero />
-                    <SearchFilter query={query} setQuery={setQuery} />
+                    <SearchFilter 
+                        query={query} 
+                        setQuery={setQuery}
+                        groupBy={groupBy}
+                        setGroupBy={setGroupBy}
+                        sortBy={sortBy}
+                        setSortBy={setSortBy}
+                    />
 
                     {/* Regional Dropdowns */}
                     <section className="col-span-12">
@@ -84,11 +152,7 @@ function Landing() {
                                 <ChevronRight className="inline" size={16} />
                             </Link>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-                            {filteredCities.slice(0, 6).map(c => (
-                                <DestinationCard key={c[0] || c.id} city={c} />
-                            ))}
-                        </div>
+                        {renderCitySections()}
                     </section>
 
                     {/* Personalized Attractions / Inspirations (At least 15 places) */}

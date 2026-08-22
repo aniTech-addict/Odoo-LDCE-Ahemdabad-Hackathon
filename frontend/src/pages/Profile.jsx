@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { Shell } from '../components/Shell'
 import { useTripStore } from '../store/useTripStore'
@@ -9,6 +9,7 @@ import { DeleteAccountModal } from '../components/profile/DeleteAccountModal'
 
 function Profile() {
     const { user, trips, cities, setUser, logout } = useTripStore()
+    const nav = useNavigate()
 
     if (!user) {
         return (
