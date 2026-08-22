@@ -4,6 +4,7 @@ export const useTripStore = create(
     persist(
         (set, get) => ({
             user: null,
+            token: null,
             trips: [],
             cities: [],
             activities: [],
@@ -16,10 +17,11 @@ export const useTripStore = create(
                     trips,
                     activeTripId: trips[0]?.id || null,
                 }),
-            login: user => set({ user }),
+            login: data => set({ user: data.user, token: data.token }),
             logout: () =>
                 set({
                     user: null,
+                    token: null,
                     trips: [],
                     activeTripId: null,
                     selectedCities: [],

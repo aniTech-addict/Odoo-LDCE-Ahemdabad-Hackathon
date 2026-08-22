@@ -15,7 +15,7 @@ export async function request(path, options = {}) {
         const stateStr = localStorage.getItem('globetrotter-state')
         if (stateStr) {
             const parsed = JSON.parse(stateStr)
-            const token = parsed?.state?.user?.token
+            const token = parsed?.state?.token
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`
             }

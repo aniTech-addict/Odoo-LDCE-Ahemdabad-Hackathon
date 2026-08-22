@@ -41,7 +41,7 @@ function Login() {
         if (!validate()) return
         setPending(true)
         await new Promise(r => setTimeout(r, 650))
-        login(await api.login(email))
+        login(await api.login(email, password))
         setPending(false)
         nav('/trips')
     }
